@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.turbo/
+
+# Build outputs
+dist/
+dist-electron/
+dist-renderer/
+release/
+out/
+build/
+coverage/
+.vite/
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# Electron / packaging artifacts
+*.app
+*.dmg
+*.exe
+*.msi
+*.AppImage
+*.deb
+*.rpm
+*.blockmap
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+*.crt
+
+# Local runtime data
+data/
+storage/
+workspace/
+tmp/
+temp/
+cache/
+uploads/
+sqlite/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Reference code kept outside the product source
+openclaw-main/
