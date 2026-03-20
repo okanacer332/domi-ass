@@ -1,4 +1,3 @@
-import os from "node:os";
 import { shell } from "electron";
 import { z } from "zod";
 
@@ -11,60 +10,40 @@ import type {
   StoredLicenseState
 } from "../../../shared/contracts";
 import { env } from "../../config/env";
-import {
-  getStoredLicenseState,
-  replaceStoredLicenseState
-} from "./license-store";
+import { ensureInstallationBinding } from "./device-binding";
+import { getStoredLicenseState, replaceStoredLicenseState } from "./license-store";
+import { syncSharedLicenseState } from "./shared-access-state";
 
-const licenseMetaSchema = z.object({
-  store_id: z.number().nullable().optional(),
-  order_id: z.number().nullable().optional(),
-  order_item_id: z.number().nullable().optional(),
-  product_id: z.number().nullable().optional(),
-  product_name: z.string().nullable().optional(),
-  variant_id: z.number().nullable().optional(),
-  variant_name: z.string().nullable().optional(),
-  customer_id: z.number().nullable().optional(),
-  customer_name: z.string().nullable().optional(),
-  customer_email: z.string().nullable().optional()
+const licenseSchema = z.object({
+  provider: z.literal("lemonsqueezy"),
+  licenseKey: z.string(),
+  licenseStatus: z.string(),
+  instanceId: z.string().nullable(),
+  instanceName: z.string().nullable(),
+  customerEmail: z.string().nullable(),
+  customerName: z.string().nullable(),
+  storeId: z.number().nullable(),
+  productId: z.number().nullable(),
+  variantId: z.number().nullable(),
+  orderId: z.number().nullable(),
+  orderItemId: z.number().nullable(),
+  expiresAt: z.string().nullable(),
+  activatedAt: z.string().nullable(),
+  validatedAt: z.string().nullable(),
+  updatedAt: z.string()
 });
-
-const licenseKeySchema = z.object({
-  id: z.number(),
-  status: z.string(),
-  key: z.string(),
-  activation_limit: z.number().nullable().optional(),
-  activation_usage: z.number().nullable().optional(),
-  created_at: z.string().nullable().optional(),
-  expires_at: z.string().nullable().optional()
-});
-
-const licenseInstanceSchema = z
-  .object({
-    id: z.string(),
-    name: z.string().nullable().optional(),
-    created_at: z.string().nullable().optional()
-  })
-  .nullable()
-  .optional();
 
 const activationResponseSchema = z.object({
-  activated: z.boolean(),
-  error: z.string().nullable().optional(),
-  license_key: licenseKeySchema.optional(),
-  instance: licenseInstanceSchema,
-  meta: licenseMetaSchema.optional()
+  success: z.boolean(),
+  error: z.string().nullable(),
+  license: licenseSchema.nullable()
 });
 
 const validationResponseSchema = z.object({
   valid: z.boolean(),
-  error: z.string().nullable().optional(),
-  license_key: licenseKeySchema.optional(),
-  instance: licenseInstanceSchema,
-  meta: licenseMetaSchema.optional()
+  error: z.string().nullable(),
+  license: licenseSchema.nullable()
 });
-
-const getDefaultInstanceName = () => `Domizan Desktop - ${os.hostname()}`;
 
 const ensureCheckoutConfigured = () => {
   if (!env.lemon.checkoutUrl) {
@@ -72,92 +51,46 @@ const ensureCheckoutConfigured = () => {
   }
 };
 
-const assertConfiguredProductMatch = (meta: z.infer<typeof licenseMetaSchema> | undefined) => {
-  if (!meta) {
-    return;
-  }
-
-  if (env.lemon.storeId && meta.store_id && env.lemon.storeId !== meta.store_id) {
-    throw new Error("Lisans farklı bir store kaydına ait görünüyor.");
-  }
-
-  if (env.lemon.productId && meta.product_id && env.lemon.productId !== meta.product_id) {
-    throw new Error("Lisans farklı bir Lemon ürününe ait görünüyor.");
-  }
-
-  if (env.lemon.variantId && meta.variant_id && env.lemon.variantId !== meta.variant_id) {
-    throw new Error("Lisans farklı bir Lemon varyantına ait görünüyor.");
+const ensureLicensingApiConfigured = () => {
+  if (!env.domizanApiBaseUrl) {
+    throw new Error("DOMIZAN_API_BASE_URL tanımlı değil.");
   }
 };
 
-const toStoredLicenseState = ({
-  licenseKey,
-  status,
-  instanceId,
-  instanceName,
-  customerEmail,
-  customerName,
-  storeId,
-  productId,
-  variantId,
-  orderId,
-  orderItemId,
-  expiresAt,
-  activatedAt,
-  validatedAt
-}: {
-  licenseKey: string;
-  status: string;
-  instanceId: string | null;
-  instanceName: string | null;
-  customerEmail: string | null;
-  customerName: string | null;
-  storeId: number | null;
-  productId: number | null;
-  variantId: number | null;
-  orderId: number | null;
-  orderItemId: number | null;
-  expiresAt: string | null;
-  activatedAt: string | null;
-  validatedAt: string | null;
-}): Omit<StoredLicenseState, "provider"> => ({
-  licenseKey,
-  licenseStatus: status,
-  instanceId,
-  instanceName,
-  customerEmail,
-  customerName,
-  storeId,
-  productId,
-  variantId,
-  orderId,
-  orderItemId,
-  expiresAt,
-  activatedAt,
-  validatedAt,
-  updatedAt: new Date().toISOString()
-});
+const postLicensingRequest = async <TResponse>(
+  endpoint: string,
+  payload: Record<string, string>
+): Promise<TResponse> => {
+  ensureLicensingApiConfigured();
 
-const postLicenseRequest = async (path: "activate" | "validate" | "deactivate", payload: Record<string, string>) => {
-  const body = new URLSearchParams(payload);
-  const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/${path}`, {
+  const response = await fetch(new URL(endpoint, env.domizanApiBaseUrl).toString(), {
     method: "POST",
     headers: {
-      Accept: "application/json",
-      "Content-Type": "application/x-www-form-urlencoded"
+      "Content-Type": "application/json"
     },
-    body
+    body: JSON.stringify(payload)
   });
 
+  const json = await response.json();
+
   if (!response.ok) {
-    throw new Error(`Lemon isteği başarısız oldu: ${response.status}`);
+    if (typeof json?.error === "string" && json.error) {
+      throw new Error(json.error);
+    }
+
+    throw new Error(`Lisans servisi hatası: ${response.status}`);
   }
 
-  return response.json();
+  return json as TResponse;
 };
 
 export const isLemonConfigured = () =>
-  Boolean(env.lemon.checkoutUrl && env.lemon.storeId && env.lemon.variantId);
+  Boolean(
+    env.lemon.checkoutUrl &&
+      env.lemon.storeId &&
+      env.lemon.variantId &&
+      env.domizanApiBaseUrl
+  );
 
 export const buildCheckoutUrl = (input?: CheckoutOpenInput) => {
   ensureCheckoutConfigured();
@@ -182,6 +115,7 @@ export const openHostedCheckout = async (input?: CheckoutOpenInput): Promise<Che
   try {
     const url = buildCheckoutUrl(input);
     await shell.openExternal(url);
+
     return {
       opened: true,
       url,
@@ -200,15 +134,27 @@ export const activateLicense = async (
   input: LicenseActivationInput
 ): Promise<LicenseActivationResult> => {
   try {
-    const payload = {
-      license_key: input.licenseKey.trim(),
-      instance_name: input.instanceName?.trim() || getDefaultInstanceName()
-    };
+    const installation = await ensureInstallationBinding();
 
-    const json = await postLicenseRequest("activate", payload);
-    const parsed = activationResponseSchema.parse(json);
+    if (installation.bindingStatus === "mismatch") {
+      return {
+        success: false,
+        error: "Bu kurulum farklı bir cihaza taşınmış görünüyor. Lisans etkinleştirilemez.",
+        license: null
+      };
+    }
 
-    if (!parsed.activated || !parsed.license_key) {
+    const parsed = activationResponseSchema.parse(
+      await postLicensingRequest("/licenses/activate", {
+        licenseKey: input.licenseKey.trim(),
+        email: input.email?.trim() ?? "",
+        instanceName:
+          input.instanceName?.trim() ||
+          `Domizan Desktop - ${installation.deviceLabel} - ${installation.installationId.slice(0, 8)}`
+      })
+    );
+
+    if (!parsed.success || !parsed.license) {
       return {
         success: false,
         error: parsed.error ?? "Lisans aktifleştirilemedi.",
@@ -216,34 +162,31 @@ export const activateLicense = async (
       };
     }
 
-    assertConfiguredProductMatch(parsed.meta);
+    const stored = await replaceStoredLicenseState({
+      licenseKey: parsed.license.licenseKey,
+      licenseStatus: parsed.license.licenseStatus,
+      instanceId: parsed.license.instanceId,
+      instanceName: parsed.license.instanceName,
+      customerEmail: parsed.license.customerEmail,
+      customerName: parsed.license.customerName,
+      storeId: parsed.license.storeId,
+      productId: parsed.license.productId,
+      variantId: parsed.license.variantId,
+      orderId: parsed.license.orderId,
+      orderItemId: parsed.license.orderItemId,
+      expiresAt: parsed.license.expiresAt,
+      activatedAt: parsed.license.activatedAt,
+      validatedAt: parsed.license.validatedAt,
+      updatedAt: parsed.license.updatedAt
+    });
 
-    if (input.email && parsed.meta?.customer_email && input.email !== parsed.meta.customer_email) {
-      return {
-        success: false,
-        error: "Girilen e-posta adresi Lemon siparişi ile eşleşmiyor.",
-        license: null
-      };
-    }
-
-    const stored = await replaceStoredLicenseState(
-      toStoredLicenseState({
-        licenseKey: parsed.license_key.key,
-        status: parsed.license_key.status,
-        instanceId: parsed.instance?.id ?? null,
-        instanceName: parsed.instance?.name ?? payload.instance_name,
-        customerEmail: parsed.meta?.customer_email ?? null,
-        customerName: parsed.meta?.customer_name ?? null,
-        storeId: parsed.meta?.store_id ?? null,
-        productId: parsed.meta?.product_id ?? null,
-        variantId: parsed.meta?.variant_id ?? null,
-        orderId: parsed.meta?.order_id ?? null,
-        orderItemId: parsed.meta?.order_item_id ?? null,
-        expiresAt: parsed.license_key.expires_at ?? null,
-        activatedAt: new Date().toISOString(),
-        validatedAt: null
-      })
-    );
+    syncSharedLicenseState({
+      installationId: installation.installationId,
+      licenseKey: stored.licenseKey,
+      status: stored.licenseStatus,
+      activatedAt: stored.activatedAt,
+      validatedAt: stored.validatedAt
+    });
 
     return {
       success: true,
@@ -266,40 +209,45 @@ export const validateStoredLicense = async (): Promise<LicenseValidationResult |
   }
 
   try {
-    const payload: Record<string, string> = {
-      license_key: storedLicense.licenseKey
-    };
-
-    if (storedLicense.instanceId) {
-      payload.instance_id = storedLicense.instanceId;
-    }
-
-    const json = await postLicenseRequest("validate", payload);
-    const parsed = validationResponseSchema.parse(json);
-    assertConfiguredProductMatch(parsed.meta);
-
-    const nextState = await replaceStoredLicenseState(
-      toStoredLicenseState({
-        licenseKey: parsed.license_key?.key ?? storedLicense.licenseKey,
-        status: parsed.license_key?.status ?? storedLicense.licenseStatus,
-        instanceId: parsed.instance?.id ?? storedLicense.instanceId,
-        instanceName: parsed.instance?.name ?? storedLicense.instanceName,
-        customerEmail: parsed.meta?.customer_email ?? storedLicense.customerEmail,
-        customerName: parsed.meta?.customer_name ?? storedLicense.customerName,
-        storeId: parsed.meta?.store_id ?? storedLicense.storeId,
-        productId: parsed.meta?.product_id ?? storedLicense.productId,
-        variantId: parsed.meta?.variant_id ?? storedLicense.variantId,
-        orderId: parsed.meta?.order_id ?? storedLicense.orderId,
-        orderItemId: parsed.meta?.order_item_id ?? storedLicense.orderItemId,
-        expiresAt: parsed.license_key?.expires_at ?? storedLicense.expiresAt,
-        activatedAt: storedLicense.activatedAt,
-        validatedAt: new Date().toISOString()
+    const installation = await ensureInstallationBinding();
+    const parsed = validationResponseSchema.parse(
+      await postLicensingRequest("/licenses/validate", {
+        licenseKey: storedLicense.licenseKey,
+        instanceId: storedLicense.instanceId ?? ""
       })
     );
 
+    const nextState = parsed.license
+      ? await replaceStoredLicenseState({
+          licenseKey: parsed.license.licenseKey,
+          licenseStatus: parsed.license.licenseStatus,
+          instanceId: parsed.license.instanceId,
+          instanceName: parsed.license.instanceName,
+          customerEmail: parsed.license.customerEmail,
+          customerName: parsed.license.customerName,
+          storeId: parsed.license.storeId,
+          productId: parsed.license.productId,
+          variantId: parsed.license.variantId,
+          orderId: parsed.license.orderId,
+          orderItemId: parsed.license.orderItemId,
+          expiresAt: parsed.license.expiresAt,
+          activatedAt: storedLicense.activatedAt,
+          validatedAt: parsed.license.validatedAt,
+          updatedAt: parsed.license.updatedAt
+        })
+      : storedLicense;
+
+    syncSharedLicenseState({
+      installationId: installation.installationId,
+      licenseKey: nextState.licenseKey,
+      status: nextState.licenseStatus,
+      activatedAt: nextState.activatedAt,
+      validatedAt: nextState.validatedAt
+    });
+
     return {
       valid: parsed.valid,
-      error: parsed.error ?? null,
+      error: parsed.error,
       license: nextState
     };
   } catch (error) {

@@ -70,3 +70,37 @@ export const licenseStateTable = sqliteTable("license_state", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull()
 });
+
+export const workspaceStateTable = sqliteTable("workspace_state", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  officeName: text("office_name"),
+  ownerName: text("owner_name"),
+  ownerEmail: text("owner_email"),
+  onboardingCompletedAt: text("onboarding_completed_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const trialStateTable = sqliteTable("trial_state", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  status: text("status").notNull().default("not_started"),
+  startedAt: text("started_at"),
+  expiresAt: text("expires_at"),
+  convertedAt: text("converted_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const installationStateTable = sqliteTable("installation_state", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  installationId: text("installation_id").notNull(),
+  deviceLabel: text("device_label").notNull(),
+  platform: text("platform").notNull(),
+  bindingHash: text("binding_hash"),
+  bindingStatus: text("binding_status").notNull().default("bound"),
+  sharedBindingPath: text("shared_binding_path").notNull(),
+  firstBoundAt: text("first_bound_at").notNull(),
+  lastSeenAt: text("last_seen_at").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});

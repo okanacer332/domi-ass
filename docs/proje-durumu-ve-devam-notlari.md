@@ -1,58 +1,46 @@
 # Domizan Proje Durumu ve Devam Notları
 
-Bu dosya Domizan projesinin yaşayan durum belgesidir.
-
-Kural:
-
-- Bu repo üzerinde çalışan herkes, anlamlı bir geliştirme yaptıktan sonra bu dosyayı güncellemelidir.
-- Yeni özellik, mimari kararı, önemli bug fix, veri modeli değişikliği ve akış değişikliği burada yer almalıdır.
-- Amaç, projeyi devralan kişinin 10 dakika içinde nerede olduğumuzu anlayabilmesidir.
+Bu dosya yaşayan proje özetidir. Repo üzerinde çalışan herkes, anlamlı bir geliştirme yaptıktan sonra bu dosyayı güncellemelidir.
 
 ## 1. Ürün Özeti
 
-Domizan, mali müşavir ofisleri için geliştirilen yapay zeka destekli bir masaüstü operasyon platformudur.
+Domizan, mali müşavir ofisleri için geliştirilen yapay zeka destekli masaüstü operasyon platformudur.
 
-Ana amaçlar:
+Ana hedefler:
 
-- Mükellef takibini kolaylaştırmak
-- Ortak gelen belge akışını düzenlemek
-- Mükellef klasör yapısını korumak
-- Ofis çalışanlarının belge toplama işini sadeleştirmek
-- Mali müşavire Telegram üzerinden hızlı bilgi, günlük brif ve hatırlatma sunmak
-- Windows ve macOS üzerinde çalışan premium bir masaüstü deneyimi vermek
+- mükellef takibini kolaylaştırmak
+- ortak belge akışını düzenlemek
+- klasör yapısını korumak
+- çalışanların belge toplama işini sadeleştirmek
+- mali müşavire Telegram üzerinden bilgi, brif ve hatırlatma sunmak
+- Windows ve macOS üzerinde premium masaüstü deneyimi vermek
 
-Temel ürün fikri:
+Net kullanım kurgusu:
 
-- Belgeler önce ofise gelir
-- Çalışanlar bu belgeleri `Domizan/GelenKutusu` alanına toplar
-- Domizan bu belgeleri anlamlandırır, tasnif eder, doğru klasöre yerleştirir ve takip eder
-- Telegram tarafı belge giriş kanalı değildir
-- Telegram yalnızca mali müşavirin kişisel bilgi ve brif kanalıdır
+- Belgeler önce ofise gelir.
+- Çalışanlar bunları `Desktop/Domizan/GelenKutusu` alanına bırakır.
+- Domizan belgeyi anlar, tasnif eder, doğru mükellef klasörüne taşır ve takibe alır.
+- Telegram belge giriş kanalı değildir.
+- Telegram sadece mali müşavirin kişisel bilgi ve brif kanalıdır.
 
-## 2. Ürünün Bugünkü Konumu
+## 2. Mevcut Mimari
 
-Şu anda Domizan bir Electron tabanlı desktop-first iskelet olarak kurulmuştur.
-
-Teknik yön:
+Desktop uygulama:
 
 - `Electron + React + TypeScript + electron-vite`
-- Local-first veri yaklaşımı
-- Yerel veritabanı: `sql.js + Drizzle`
-- Masaüstünde otomatik klasör yapısı
-- Mükellef CRUD akışı hazır
-- Excel/CSV içe aktarma çekirdeği hazır
-- Yerel lisanslama iskeleti hazır
+- local-first mimari
+- yerel veritabanı: `sql.js + Drizzle`
 
-Tasarım yönü:
+Backend:
 
-- Premium, sade, güven veren, ofis kullanımına uygun arayüz hedefleniyor
-- Türkçe karakter ve Türkiye odaklı kullanım önceliklidir
-- Sol panel sabit kalır
-- Maskot sağ altta sabit bir chatbot varlığı gibi görünür
+- ayrı `backend/` servisi
+- `Node.js + Express + TypeScript`
+- Cloud Run üzerinde çalışıyor
+- Lemon lisans aktivasyon, doğrulama ve webhook kabul katmanı burada
 
-## 3. Mevcut Klasör ve Sistem Mantığı
+## 3. Masaüstü Klasör Yapısı
 
-Domizan ilk açılışta masaüstünde bu ana yapıyı üretir:
+İlk açılışta masaüstünde şu yapı oluşturulur:
 
 - `Desktop/Domizan`
 - `Desktop/Domizan/Mukellefler`
@@ -62,7 +50,7 @@ Domizan ilk açılışta masaüstünde bu ana yapıyı üretir:
 - `Desktop/Domizan/Sablonlar`
 - `Desktop/Domizan/_Sistem`
 
-Her mükellef için klasör açıldığında alt yapılar oluşturulur:
+Her mükellef için standart alt klasörler açılır:
 
 - `01-Gelen Belgeler`
 - `02-Beyanname`
@@ -72,315 +60,254 @@ Her mükellef için klasör açıldığında alt yapılar oluşturulur:
 - `06-Resmi Evrak`
 - `99-Diger`
 
-Ek olarak her mükellef klasöründe bir adet `Bilgi.txt` oluşturulur.
+Her mükellef klasöründe ayrıca `Bilgi.txt` üretilir.
 
-`Bilgi.txt` amacı:
+## 4. Tamamlanan Büyük Parçalar
 
-- Mükellef hakkında hızlı okunabilir ofis özeti sunmak
-- Telefon, yetkili, adres, kimlik bilgisi ve notları tek yerde toplamak
-- Süreç içinde belge veya manuel veriyle zenginleşen hızlı referans dosyası olmak
+### 4.1. Desktop Temeli
 
-## 4. Bugüne Kadar Yapılanlar
+- Electron uygulama iskeleti kuruldu.
+- main / preload / renderer ayrımı yapıldı.
+- premium tasarım dili kuruldu.
+- sidebar sticky hale getirildi.
+- maskot sağ altta sabit varlık olarak konumlandı.
+- `npm run build` başarılı.
 
-### 4.1. Temel Proje Kurulumu
+### 4.2. Mükellef Yönetimi
 
-- Electron uygulama iskeleti kuruldu
-- Main, preload ve renderer ayrımı yapıldı
-- React tabanlı arayüz altyapısı kuruldu
-- Build pipeline çalışır durumda
-- `npm run build` başarılı
+Hazır:
 
-### 4.2. Tasarım Temeli
+- mükellef listeleme
+- yeni mükellef ekleme
+- düzenleme
+- aktif / pasif geçişi
+- mükellef klasörünü doğrudan açma
+- standart mükellef klasörü üretme
 
-- Marka varlıkları kullanıma alındı
-- Logo ve maskot arayüze bağlandı
-- Tema yapısı token bazlı düzenlendi
-- Türkçe kullanım öncelikli font ve arayüz dili hedeflendi
-- Sidebar sabit davranacak şekilde düzenlendi
+### 4.3. Kimlik Modeli
 
-### 4.3. Yerel Veri ve Klasör Omurgası
+Bu konu kesin karardır.
 
-- Uygulama açılışında Domizan klasör yapısı hazırlanıyor
-- Yerel veritabanı bootstrap akışı kuruldu
-- Ayarlar, mükellefler, belgeler, hatırlatmalar ve lisans durumu tabloları tanımlandı
-
-### 4.4. Mükellef Yönetimi
-
-Hazır olanlar:
-
-- Mükellef listeleme
-- Yeni mükellef oluşturma
-- Mükellef düzenleme
-- Mükellefi pasife çekme / tekrar aktifleştirme
-- Mükellef klasörünü doğrudan açma
-
-Ek kararlar:
-
-- Her mükellef için klasör slug mantığı var
-- Aynı isim çakışmalarında benzersiz klasör adı üretiliyor
-- Klasör yapısı mükellef kaydıyla birlikte açılıyor
-
-### 4.5. Kimlik Modeli
-
-Bu konu artık öneri değil, uygulanmış karardır.
-
-Aktif veri modeli:
+Aktif model:
 
 - `identityType`: `vkn | tckn`
-- `identityNumber`: normalize edilmiş kimlik numarası
+- `identityNumber`
 
-Uygulama davranışı:
+Kurallar:
 
-- Formda kullanıcı kimlik türünü açıkça seçer
-- Kimlik numarası buna göre doğrulanır
-- T.C. kimlik için checksum doğrulaması aktiftir
-- VKN için checksum doğrulaması aktiftir
-- Geçersiz kimlik numarası kayda girmez
-- İçe aktarmada kimlik numarası varsa sistem türü otomatik algılar ve sıkı doğrular
-- Geçersiz kimlik numarası taşıyan satırlar içe alınmaz
+- T.C. kimlikte checksum zorunlu
+- VKN’de checksum zorunlu
+- geçersiz numara kayda alınmaz
+- import sırasında da sıkı doğrulama uygulanır
 
-Legacy uyumluluk:
+### 4.4. Bilgi.txt
 
-- Eski `tax_id` kolonu geriye dönük uyumluluk için korunur
-- Yeni `identity_type` ve `identity_number` alanlarına bootstrap sırasında otomatik geçiş yapılır
+Hazır:
 
-### 4.6. Bilgi.txt Akışı
+- her mükellef klasörüne `Bilgi.txt` oluşturuluyor
+- ad, kimlik, vergi dairesi, yetkili, telefon, e-posta, adres, notlar ve durum yazılıyor
+- yeni kayıt, düzenleme ve durum değişimlerinde güncelleniyor
 
-Hazır olanlar:
+### 4.5. Excel / CSV İçe Aktarma
 
-- Her mükellef klasörüne `Bilgi.txt` oluşturuluyor
-- Şu bilgiler yazılıyor:
-  - Mükellef adı
-  - Kimlik türü
-  - Kimlik numarası
-  - Vergi dairesi
-  - Yetkili kişi
-  - Telefon
-  - E-posta
-  - İl / ilçe
-  - Açık adres
-  - Notlar
-  - Durum
-  - Son güncelleme zamanı
+Hazır:
 
-Davranış:
+- `.xlsx` ve `.csv` ön izleme
+- otomatik kolon eşleme önerisi
+- kullanıcı onaylı import
+- satır bazlı uyarılar
+- upsert mantığı
 
-- Yeni kayıt açılınca oluşur
-- Düzenleme sonrası güncellenir
-- Durum değişince güncellenir
-- Eski kayıtlar listelenince eksikse oluşturulur
+Kararlar:
 
-### 4.7. Excel / CSV İçe Aktarma
+- `.xls` desteklenmiyor
+- Türkiye öncelikli encoding desteği var
+- kimlik numarası varsa önce ona göre eşleşme yapılır
 
-Hazır olanlar:
+### 4.6. Onboarding ve Deneme
 
-- Excel dosyası seçme
-- Ön izleme
-- Alan eşleme ekranı
-- Kullanıcı onaylı içe aktarma
-- Otomatik başlık tahmini
-- Farklı kolon başlıklarına göre eşleme önerisi
-- Satır bazlı doğrulama uyarıları
-- Upsert mantığı
+Hazır:
 
-Destek:
+- ilk açılış onboarding ekranı
+- ofis adı, yetkili adı ve e-posta toplama
+- 7 günlük deneme başlatma ekranı
+- lisans anahtarı ile açma ekranı
+- deneme dolduğunda kilitli erişim ekranı
 
-- `.xlsx`
-- `.csv`
+### 4.7. Makineye Bağlı Kopya Koruması
 
-Eski format kararı:
+Hazır:
 
-- `.xls` doğrudan desteklenmiyor
-- Kullanıcıdan `.xlsx` veya `.csv` olarak yeniden kaydetmesi isteniyor
+- kurulum makine seviyesinde bağlanıyor
+- Windows: `ProgramData/Domizan/Security`
+- macOS: `/Users/Shared/Domizan/Security`
+- `machine-binding.json` ile kurulum kimliği ve binding hash tutuluyor
+- başka makineye kopyalanırsa erişim `mismatch` olarak kilitleniyor
+- trial ve lisans durumu ortak makine seviyesinde de tutuluyor
+- aynı bilgisayarda farklı kullanıcı profilleri yeni deneme açamıyor
 
-Encoding kararı:
+### 4.8. Masaüstü Release ve Update Altyapısı
 
-- Türkiye öncelikli encoding desteği eklendi
-- CSV tarafında şu adaylar deneniyor:
-  - `utf8`
-  - `windows-1254`
-  - `iso-8859-9`
+Hazır:
 
-İçe aktarma davranışı:
+- Windows için `NSIS` installer hedefi tanımlandı
+- macOS için `DMG + ZIP` hedefleri tanımlandı
+- Intel ve Apple Silicon için ayrı macOS build hedefleri tanımlandı
+- uygulama içi update state katmanı eklendi
+- topbar üzerinde sürüm ve update durumu görünür hale geldi
+- GitHub Releases tabanlı sıfır maliyetli yayın modeli kuruldu
+- GitHub Actions release workflow eklendi
 
-- Önce otomatik alan eşleme önerilir
-- Kullanıcı onaylamadan içe alınmaz
-- `Mükellef adı` zorunlu alandır
-- `Kimlik numarası` alanı varsa sistem bunu otomatik olarak `VKN` veya `T.C. Kimlik` olarak algılar
-- Geçersiz kimlik numarası varsa ilgili satır atlanır
-- Güncelleme eşleşmesinde kimlik numarası ilk önceliktir
-- Kimlik numarası yoksa isim normalizasyonu fallback olarak kullanılır
+### 4.9. Hızlı Erişim Test Araçları
 
-### 4.8. Lisanslama ve Lemon Hazırlığı
+Hazır:
 
-Hazır olanlar:
+- yerel lisansı temizleyen Windows ve macOS kısayolları eklendi
+- denemeyi anında bitmiş hale getiren Windows ve macOS kısayolları eklendi
+- erişim durumunu düzenleyen yardımcı araç `tools/domizan-access-tool.cjs` altında toplandı
 
-- Lemon için env iskeleti hazır
-- Hosted checkout açma altyapısı hazır
-- Lisans aktivasyon ve doğrulama iskeleti hazır
-- Yerelde lisans durumu saklama altyapısı hazır
-- Test modu için ayrı kurulum dökümanı var
+## 5. Lisanslama Durumu
 
-Henüz tamamlanmayanlar:
+Bu alan artık ciddi ölçüde tamamlandı.
 
-- Gerçek Lemon store/product/variant bağlanması
-- Webhook tarafı
-- Satın alma sonrası tam aktivasyon akışı
+### 5.1. Lemon Bilgileri
 
-### 4.9. Hızlı Test Kısayolları
+- `LEMON_MODE=test`
+- `LEMON_STORE_ID=321476`
+- `LEMON_PRODUCT_ID=906701`
+- `LEMON_VARIANT_ID=1426060`
+- `LEMON_CHECKOUT_URL=https://domizan.lemonsqueezy.com/checkout/buy/628ec32c-e243-4be8-8722-08a863a9c827`
+- aktivasyon limiti: `5`
 
-Hazır olanlar:
+### 5.2. Cloud Run Backend
 
-- Windows başlatma scripti
-- macOS başlatma scripti
-- Windows sıfırlama scripti
-- macOS sıfırlama scripti
+Hazır:
 
-Not:
+- servis adı: `domizan-api`
+- proje: `domizan`
+- bölge: `europe-west1`
+- canlı URL: `https://domizan-api-5jzmdzz6lq-ew.a.run.app`
 
-- Windows `.bat` dosyaları CRLF uyumlu hale getirildi
-- Sıfırlama scriptleri kaynak kodu silmez
-- Sadece yerel uygulama verisini ve masaüstü Domizan klasörünü temizler
+Backend endpoint’leri:
 
-## 5. Açık ve Planlanan Büyük Akışlar
+- `GET /health`
+- `POST /licenses/activate`
+- `POST /licenses/validate`
+- `POST /webhooks/lemon`
 
-Henüz çekirdeği tam bitmemiş veya sonraki faza bırakılmış alanlar:
+Desktop artık Lemon API’ye doğrudan gitmez.
 
-- İlk açılış onboarding akışı
-- 7 günlük deneme süreci
-- Ofis bilgisi oluşturma
-- İlk mükellef seti oluşturma sihirbazı
-- GelenKutusu belge izleme ve belge işleme hattı
+Desktop ana süreç, public backend adresine gider ve API key sadece Cloud Run tarafında kalır.
+
+### 5.3. Secret Manager
+
+Oluşturuldu:
+
+- `domizan-lemon-api-key`
+- `domizan-lemon-webhook-secret`
+
+Runtime service account:
+
+- `domizan-api-run@domizan.iam.gserviceaccount.com`
+
+Bu service account’a `Secret Manager Secret Accessor` yetkisi verildi.
+
+### 5.4. Webhook
+
+Aktif Lemon webhook ID:
+
+- `82983`
+
+Geçici çalışan callback:
+
+- `https://domizan-api-5jzmdzz6lq-ew.a.run.app/webhooks/lemon`
+
+Durum:
+
+- webhook imza testi başarılı
+- Cloud Run canlı
+- Lemon webhook canlı adrese güncellendi
+
+### 5.5. Custom Domain Durumu
+
+Hedef:
+
+- `https://api.domizan.com/webhooks/lemon`
+
+Henüz tamamlanmayan tek neden:
+
+- `domizan.com` Google tarafında verify görünmüyor
+
+Şu an verify görünen domain:
+
+- `olric.app`
+
+Yani lisans backend’i çalışıyor, ancak custom domain mapping için domain verification adımı eksik.
+
+## 6. Aktif Test Fazı
+
+Şu an doğru odak, custom domain'i beklemeden ürünün çekirdek akışlarını gerçek kullanım gibi test etmektir.
+
+Aktif test başlıkları:
+
+- onboarding akışı
+- 7 günlük deneme akışı
+- shared machine kopya koruması
+- Lemon test mode satın alma ve lisans aktivasyonu
+- mükellef oluşturma ve `Bilgi.txt`
+- Excel / CSV içe aktarma
+
+Test planı:
+
+- [manual-test-plani.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/manual-test-plani.md)
+
+## 7. Açık Büyük Fazlar
+
+Henüz sonraki fazda:
+
+- ilk mükellef seti oluşturma sihirbazı
+- GelenKutusu belge izleme
 - AI ile belge sınıflandırma
-- Belgeyi doğru mükellef klasörüne taşıma
-- Telegram üzerinden günlük brif
-- Telegram üzerinden mükellef bilgi sorgulama
-- Beyanname ve kritik tarih hatırlatmaları
-- Çok kullanıcılı ofis rolleri
-- Lemon üzerinden tam satın alma ve lisans yönetimi
+- belgeyi doğru klasöre taşıma
+- Telegram brif ve sorgu katmanı
+- beyanname ve kritik tarih hatırlatmaları
+- çok kullanıcılı ofis rolleri
+- Lemon canlı moda geçiş ve domain mapping tamamlama
 
-## 6. OpenClaw Kararı
+## 8. Sonraki Doğru Adımlar
 
-OpenClaw ana ürün olmayacak.
+Önerilen sıra:
 
-Doğru konumu:
+1. onboarding sonrası ilk mükellef kurulum sihirbazı
+2. GelenKutusu izleme ve belge işleme çekirdeği
+3. AI sınıflandırma ve klasör önerisi
+4. `Bilgi.txt` ve mükellef kartını belge analiziyle zenginleştirme
+5. Telegram bilgi ve günlük brif katmanı
+6. `api.domizan.com` domain verification ve mapping
+7. Lemon canlı mod
 
-- Telegram ve dış kanal entegrasyon omurgası
-- Otomasyon, cron ve webhook katmanı
-- Gerekirse belge ön işleme yardımcı katmanı
-
-Domizan’ın kendi sahipliği altında kalacak alanlar:
-
-- Mükellef veri modeli
-- Klasörleme mantığı
-- Belge operasyon kuralları
-- Lisans ve satın alma akışı
-- Ofis içi kullanım mantığı
-
-## 7. Kritik Ürün Kararları
-
-### 7.1. Telegram
-
-- Telegram belge toplama kanalı değildir
-- Telegram yalnızca mali müşavirin kişisel kullanım kanalıdır
-- Kullanım örnekleri:
-  - Akşam hızlı mükellef durumu sorgulama
-  - Günlük brif alma
-  - Hatırlatma alma
-  - Beyanname veya kritik iş uyarısı görme
-
-### 7.2. GelenKutusu
-
-- GelenKutusu ofis çalışanlarının kullandığı ortak operasyon alanıdır
-- Dosyalar farklı kaynaklardan gelebilir
-- Çalışanlar bunları `Domizan/GelenKutusu` içine bırakır
-- Domizan bu noktadan sonra düzenleyici sistem rolünü üstlenir
-
-### 7.3. Türkiye Önceliği
-
-- Türkçe karakter desteği kritik
-- Encoding dayanıklılığı kritik
-- Türkiye muhasebe gerçeklerine göre veri modeli kurulmalı
-- VKN, T.C. kimlik, adres ve ofis içi not mantığı ilk sınıf vatandaş olmalı
-
-## 8. VKN ve T.C. Kimlik Ayrımı İçin Kesin Karar
-
-Bu konu kapatılmıştır.
-
-Karar:
-
-- Sistem artık tek bir belirsiz `Vergi / T.C. no` mantığıyla çalışmaz
-- Veri modeli açıkça `identityType` ve `identityNumber` kullanır
-- Arayüzde kullanıcı `VKN` veya `T.C. Kimlik` türünü seçer
-- Import ekranı numarayı algılar ve sıkı doğrular
-
-Aktif doğrulama kuralları:
-
-- `TCKN`
-  - 11 haneli olmalı
-  - İlk hane `0` olamaz
-  - Checksum kontrolü geçmeli
-- `VKN`
-  - 10 haneli olmalı
-  - Checksum kontrolü geçmeli
-
-Eşleşme kararı:
-
-- Upsert ve eşleşme `identityNumber` üzerinden yapılır
-- İsim eşleşmesi yalnızca ikinci seviye fallback olarak kullanılır
-
-Veri geçiş kararı:
-
-- Eski kayıtlar uygulama açılışında migrate edilir
-- Eski `tax_id` verisi varsa `identityType` ve `identityNumber` alanlarına taşınır
-
-Not:
-
-- GİB ekran ve kılavuzlarında bazı alanlarda gerçek kişiler için T.C. kimlik numarasının kullanılabildiği görülür
-- Uygulama içinde ise bu bilgi artık tek alanda karışık tutulmaz; tür ayrımı zorunlu biçimde nettir
-
-## 9. Sonraki En Doğru Adımlar
-
-Önerilen öncelik sırası:
-
-1. Onboarding ve 7 günlük deneme akışı
-2. `Bilgi.txt` ve mükellef kartını belge analiziyle zenginleştirme
-3. GelenKutusu izleme ve belge işleme çekirdeği
-4. AI ile belge sınıflandırma ve klasör önerisi
-5. Doğru klasöre taşıma akışı
-6. Telegram bilgi ve brif katmanı
-7. Lemon tam satın alma ve lisans yönetimi
-
-## 10. Bu Dosya Güncellenirken Nelere Bakılmalı
-
-Her güncellemede şu başlıklar kontrol edilmelidir:
-
-- Yeni özellik ne eklendi
-- Hangi dosya veya modül değişti
-- Yeni ürün kararı alındı mı
-- Yeni veri alanı eklendi mi
-- Yeni klasör veya belge mantığı geldi mi
-- Yeni bug fix yapıldı mı
-- Sonraki adım değişti mi
-
-## 11. Bu Belgenin İlişkili Olduğu Diğer Dosyalar
+## 9. İlişkili Dosyalar
 
 - [domizan-urun-vizyonu-ve-yolculugu.md](C:/Users/acero/Documents/GitHub/domi-ass/domizan-urun-vizyonu-ve-yolculugu.md)
 - [teknik-mimari-ve-yol-haritasi.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/teknik-mimari-ve-yol-haritasi.md)
 - [lemon-test-modu-kurulumu.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/lemon-test-modu-kurulumu.md)
+- [cloud-run-lisans-backendi.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/cloud-run-lisans-backendi.md)
+- [manual-test-plani.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/manual-test-plani.md)
+- [masaustu-release-ve-update.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/masaustu-release-ve-update.md)
 
-## 12. Son Not
+## 10. Son Not
 
-Domizan artık yalnızca bir fikir aşamasında değildir.
+Domizan artık fikir aşamasında değildir.
 
-Şu anda:
+Bugün itibarıyla:
 
-- çalışan bir desktop iskeleti vardır
+- çalışan desktop iskeleti vardır
 - mükellef yönetimi vardır
-- kimlik ayrımı netleştirilmiştir
-- Excel içe aktarma çekirdeği vardır
-- klasör üretme mantığı vardır
+- kimlik ayrımı kesindir
+- import çekirdeği vardır
 - `Bilgi.txt` akışı vardır
-- lisans altyapısının temeli vardır
+- onboarding ve 7 günlük deneme vardır
+- makineye bağlı lisans koruması vardır
+- Cloud Run üzerinde canlı lisans backend’i vardır
 
 Bir sonraki büyük kırılım belge operasyon çekirdeğidir.

@@ -128,6 +128,40 @@ export const bootstrapDatabase = () => {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS workspace_state (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      office_name TEXT,
+      owner_name TEXT,
+      owner_email TEXT,
+      onboarding_completed_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS trial_state (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      status TEXT NOT NULL DEFAULT 'not_started',
+      started_at TEXT,
+      expires_at TEXT,
+      converted_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS installation_state (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      installation_id TEXT NOT NULL,
+      device_label TEXT NOT NULL,
+      platform TEXT NOT NULL,
+      binding_hash TEXT,
+      binding_status TEXT NOT NULL DEFAULT 'bound',
+      shared_binding_path TEXT NOT NULL,
+      first_bound_at TEXT NOT NULL,
+      last_seen_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
   `);
 
   ensureColumn("clients", "identity_type", "identity_type TEXT");

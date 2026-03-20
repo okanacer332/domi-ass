@@ -13,15 +13,28 @@ import {
   setClientStatus,
   updateClient
 } from "./services/clients/client-service";
+import { startTrial } from "./services/licensing/access-service";
 import {
   activateLicense,
   openHostedCheckout,
   validateStoredLicense
 } from "./services/licensing/lemon";
 import { getStoredLicenseState } from "./services/licensing/license-store";
+import { completeOnboarding } from "./services/onboarding/workspace-service";
+import {
+  checkForUpdates,
+  getUpdateState,
+  installDownloadedUpdate
+} from "./services/updates/update-service";
 
 export const registerIpcHandlers = () => {
   ipcMain.handle("app:getBootstrap", async () => getBootstrapPayload());
+  ipcMain.handle("app:completeOnboarding", async (_, input) => completeOnboarding(input));
+  ipcMain.handle("updates:getState", async () => getUpdateState());
+  ipcMain.handle("updates:check", async () => checkForUpdates());
+  ipcMain.handle("updates:install", async () => installDownloadedUpdate());
+
+  ipcMain.handle("licensing:startTrial", async () => startTrial());
   ipcMain.handle("licensing:openCheckout", async (_, input) => openHostedCheckout(input));
   ipcMain.handle("licensing:getStoredLicense", async () => getStoredLicenseState());
   ipcMain.handle("licensing:activateLicense", async (_, input) => activateLicense(input));

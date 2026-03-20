@@ -1,9 +1,26 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 import type { DomizanApi } from "../shared/contracts";
+import { UPDATE_STATE_CHANNEL } from "../shared/ipc-channels";
 
 const api: DomizanApi = {
   getBootstrap: () => ipcRenderer.invoke("app:getBootstrap"),
+  completeOnboarding: (input) => ipcRenderer.invoke("app:completeOnboarding", input),
+  getUpdateState: () => ipcRenderer.invoke("updates:getState"),
+  checkForUpdates: () => ipcRenderer.invoke("updates:check"),
+  installUpdate: () => ipcRenderer.invoke("updates:install"),
+  onUpdateStateChanged: (listener) => {
+    const wrappedListener = (_event: Electron.IpcRendererEvent, state: Parameters<typeof listener>[0]) => {
+      listener(state);
+    };
+
+    ipcRenderer.on(UPDATE_STATE_CHANNEL, wrappedListener);
+
+    return () => {
+      ipcRenderer.removeListener(UPDATE_STATE_CHANNEL, wrappedListener);
+    };
+  },
+  startTrial: () => ipcRenderer.invoke("licensing:startTrial"),
   openCheckout: (input) => ipcRenderer.invoke("licensing:openCheckout", input),
   getStoredLicense: () => ipcRenderer.invoke("licensing:getStoredLicense"),
   activateLicense: (input) => ipcRenderer.invoke("licensing:activateLicense", input),

@@ -13,6 +13,19 @@ export const DOMIZAN_FOLDER_NAMES = {
 export type LemonMode = "test" | "live";
 export type ClientStatus = "active" | "passive";
 export type ClientIdentityType = "vkn" | "tckn";
+export type TrialStatus = "not_started" | "active" | "expired" | "converted";
+export type AccessMode = "trial" | "licensed" | "blocked";
+export type BindingStatus = "bound" | "mismatch" | "unavailable";
+export type AppUpdateStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "downloaded"
+  | "installing"
+  | "not-available"
+  | "error"
+  | "unsupported";
 
 export type ClientImportField =
   | "name"
@@ -48,9 +61,47 @@ export type DashboardSummary = {
   lemonMode: LemonMode;
 };
 
-export type BootstrapPayload = {
-  directories: DomizanDirectoryMap;
-  summary: DashboardSummary;
+export type AppUpdateState = {
+  status: AppUpdateStatus;
+  currentVersion: string;
+  nextVersion: string | null;
+  releaseName: string | null;
+  releaseDate: string | null;
+  progressPercent: number | null;
+  downloadedBytes: number | null;
+  totalBytes: number | null;
+  lastCheckedAt: string | null;
+  error: string | null;
+  canCheck: boolean;
+  canInstall: boolean;
+};
+
+export type WorkspaceProfile = {
+  officeName: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  onboardingCompletedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type InstallationSnapshot = {
+  installationId: string;
+  deviceLabel: string;
+  platform: string;
+  bindingStatus: BindingStatus;
+  sharedBindingPath: string;
+  firstBoundAt: string | null;
+  lastSeenAt: string | null;
+};
+
+export type TrialSnapshot = {
+  status: TrialStatus;
+  startedAt: string | null;
+  expiresAt: string | null;
+  convertedAt: string | null;
+  daysLeft: number;
+  hoursLeft: number;
 };
 
 export type CheckoutOpenInput = {
@@ -99,6 +150,36 @@ export type LicenseValidationResult = {
   valid: boolean;
   error: string | null;
   license: StoredLicenseState | null;
+};
+
+export type AccessSnapshot = {
+  mode: AccessMode;
+  canUseApp: boolean;
+  reason: string | null;
+  requiresPurchase: boolean;
+  canStartTrial: boolean;
+  installation: InstallationSnapshot;
+  trial: TrialSnapshot;
+  license: StoredLicenseState | null;
+};
+
+export type OnboardingSnapshot = {
+  isComplete: boolean;
+  recommendedStep: "welcome" | "workspace" | "trial" | "locked";
+};
+
+export type BootstrapPayload = {
+  directories: DomizanDirectoryMap;
+  summary: DashboardSummary;
+  workspace: WorkspaceProfile | null;
+  onboarding: OnboardingSnapshot;
+  access: AccessSnapshot;
+};
+
+export type OnboardingSetupInput = {
+  officeName: string;
+  ownerName: string;
+  ownerEmail: string;
 };
 
 export type ClientRecord = {
@@ -195,6 +276,12 @@ export type ClientImportCommitResult = {
 
 export type DomizanApi = {
   getBootstrap: () => Promise<BootstrapPayload>;
+  completeOnboarding: (input: OnboardingSetupInput) => Promise<WorkspaceProfile>;
+  getUpdateState: () => Promise<AppUpdateState>;
+  checkForUpdates: () => Promise<AppUpdateState>;
+  installUpdate: () => Promise<AppUpdateState>;
+  onUpdateStateChanged: (listener: (state: AppUpdateState) => void) => () => void;
+  startTrial: () => Promise<AccessSnapshot>;
   openCheckout: (input?: CheckoutOpenInput) => Promise<CheckoutOpenResult>;
   getStoredLicense: () => Promise<StoredLicenseState | null>;
   activateLicense: (input: LicenseActivationInput) => Promise<LicenseActivationResult>;

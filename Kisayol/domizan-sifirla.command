@@ -7,20 +7,21 @@ TARGETS=(
   "$HOME/Library/Application Support/Domizan"
   "$HOME/Library/Caches/domizan"
   "$HOME/Library/Caches/Domizan"
+  "/Users/Shared/Domizan"
 )
 
-echo "Bu işlem yerel Domizan test verilerini silecektir."
+echo "Bu islem yerel Domizan test verilerini silecektir."
 echo
-echo "Silinecek klasörler:"
+echo "Silinecek klasorler:"
 for target in "${TARGETS[@]}"; do
   echo "- $target"
 done
 echo
 
-read -r -p "Devam etmek için EVET yazın: " CONFIRM
+read -r -p "Devam etmek icin EVET yazin: " CONFIRM
 
 if [[ "$CONFIRM" != "EVET" ]]; then
-  echo "İşlem iptal edildi."
+  echo "Islem iptal edildi."
   exit 0
 fi
 
@@ -33,4 +34,4 @@ done
 
 echo
 echo "Yerel Domizan verileri temizlendi."
-echo "Kaynak kod klasörü korunmuştur."
+echo "Kaynak kod klasoru korunmustur."

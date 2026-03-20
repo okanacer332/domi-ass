@@ -10,12 +10,16 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "package": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "dist:mac:intel": "npm run build && electron-builder --mac dmg zip --x64 --publish never",
+    "dist:mac:apple": "npm run build && electron-builder --mac dmg zip --arm64 --publish never"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
+    "electron-updater": "^6.8.3",
     "exceljs": "^4.4.0",
     "iconv-lite": "^0.7.2",
     "lucide-react": "^0.511.0",
@@ -42,15 +46,52 @@
   "build": {
     "appId": "com.domizan.desktop",
     "productName": "Domizan",
+    "asar": true,
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "assets"
     },
     "files": [
       "out/**/*",
       "package.json"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "okanacer332",
+        "repo": "domi-ass",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
     "mac": {
-      "category": "public.app-category.business"
+      "category": "public.app-category.business",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,

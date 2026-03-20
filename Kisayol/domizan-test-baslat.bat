@@ -33,3 +33,4 @@ echo.
 echo Baslatma sirasinda hata olustu.
 pause
 exit /b 1
+
