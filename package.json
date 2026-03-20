@@ -13,7 +13,14 @@
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
     "dist:mac:intel": "npm run build && electron-builder --mac dmg zip --x64 --publish never",
-    "dist:mac:apple": "npm run build && electron-builder --mac dmg zip --arm64 --publish never"
+    "dist:mac:apple": "npm run build && electron-builder --mac dmg zip --arm64 --publish never",
+    "release:verify": "npm run build && npm --prefix backend run build",
+    "release:patch": "npm version patch --no-git-tag-version && node tools/release-helper.cjs",
+    "release:minor": "npm version minor --no-git-tag-version && node tools/release-helper.cjs",
+    "release:major": "npm version major --no-git-tag-version && node tools/release-helper.cjs",
+    "release:status": "node tools/release-helper.cjs",
+    "release:tag": "node tools/release-helper.cjs create-tag",
+    "release:publish-tag": "node tools/release-helper.cjs publish-tag"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",

@@ -26,6 +26,20 @@ Repo:
 
 - `https://github.com/okanacer332/domi-ass`
 
+## 2.1. GÃ¼nlÃ¼k GeliÅŸtirme ve Release AyrÄ±mÄ±
+
+ArtÄ±k iki ayrÄ± GitHub Actions workflow vardÄ±r:
+
+- `CI`
+  - her `push` ve `pull request` iÃ§in Ã§alÄ±ÅŸÄ±r
+  - desktop build ve backend build doÄŸrulamasÄ± yapar
+  - release Ã¼retmez
+- `Release Desktop`
+  - yalnÄ±zca `v*` tag push ile Ã§alÄ±ÅŸÄ±r
+  - GitHub Release ve kurulum paketlerini Ã¼retir
+
+Bu sayede her geliÅŸtirme push'unda kalite kontrol alÄ±nÄ±r, ama kullanÄ±cÄ±ya gidecek release yalnÄ±zca sÃ¼rÃ¼m verildiÄŸinde Ã§Ä±kar.
+
 ## 3. Üretilen Paketler
 
 Windows:
@@ -104,10 +118,13 @@ Bu nedenle mevcut karar:
 
 Dosya:
 
+- [.github/workflows/ci.yml](C:/Users/acero/Documents/GitHub/domi-ass/.github/workflows/ci.yml)
 - [.github/workflows/release-desktop.yml](C:/Users/acero/Documents/GitHub/domi-ass/.github/workflows/release-desktop.yml)
 
 Tetikleme:
 
+- `push` on `main`
+- `pull_request`
 - `v*` tag push
 - manuel `workflow_dispatch`
 
@@ -136,6 +153,20 @@ macOS Apple Silicon:
 ```bash
 npm run dist:mac:apple
 ```
+
+Release yardÄ±mcÄ±larÄ±:
+
+```bash
+npm run release:patch
+npm run release:minor
+npm run release:major
+npm run release:status
+npm run release:publish-tag
+```
+
+Script:
+
+- [release-helper.cjs](C:/Users/acero/Documents/GitHub/domi-ass/tools/release-helper.cjs)
 
 ## 9. Release Alma Sırası
 
