@@ -6,6 +6,7 @@ import {
   pickClientImportFile,
   previewClientImport
 } from "./services/clients/client-import";
+import { prepareClientImportTemplate } from "./services/clients/client-import-template";
 import {
   createClient,
   listClients,
@@ -45,6 +46,7 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("clients:update", async (_, input) => updateClient(input));
   ipcMain.handle("clients:setStatus", async (_, input) => setClientStatus(input));
   ipcMain.handle("clients:openFolder", async (_, clientId: number) => openClientFolder(clientId));
+  ipcMain.handle("clients:prepareImportTemplate", async () => prepareClientImportTemplate());
   ipcMain.handle("clients:pickImportFile", async () => pickClientImportFile());
   ipcMain.handle("clients:previewImport", async (_, filePath: string) => previewClientImport(filePath));
   ipcMain.handle("clients:commitImport", async (_, input) => commitClientImport(input));

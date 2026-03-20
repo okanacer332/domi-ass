@@ -30,6 +30,7 @@ const api: DomizanApi = {
   updateClient: (input) => ipcRenderer.invoke("clients:update", input),
   setClientStatus: (input) => ipcRenderer.invoke("clients:setStatus", input),
   openClientFolder: (clientId) => ipcRenderer.invoke("clients:openFolder", clientId),
+  prepareClientImportTemplate: () => ipcRenderer.invoke("clients:prepareImportTemplate"),
   pickClientImportFile: () => ipcRenderer.invoke("clients:pickImportFile"),
   previewClientImport: (filePath) => ipcRenderer.invoke("clients:previewImport", filePath),
   commitClientImport: (input) => ipcRenderer.invoke("clients:commitImport", input)

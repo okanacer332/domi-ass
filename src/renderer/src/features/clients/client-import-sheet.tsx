@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { FileSpreadsheet, ShieldAlert, X } from "lucide-react";
+import { Download, FileSpreadsheet, ShieldAlert, X } from "lucide-react";
 
+import {
+  DOMIZAN_CLIENT_IMPORT_TEMPLATE_COLUMNS,
+  DOMIZAN_CLIENT_IMPORT_TEMPLATE_GUIDANCE
+} from "../../../../shared/client-import-template";
 import {
   getClientIdentityTypeLabel,
   inferIdentityFromValue
@@ -46,6 +50,29 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
   const [committing, setCommitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+
+  const prepareTemplate = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const response = await window.domizanApi.prepareClientImportTemplate();
+      setResult(
+        response.error
+          ? `Şablon oluşturuldu ancak klasör açılamadı: ${response.error}`
+          : `Şablon hazırlandı. Şablon klasörü açıldı: ${response.folderPath}`
+      );
+    } catch (templateError) {
+      setError(
+        templateError instanceof Error
+          ? templateError.message
+          : "Şablon hazırlanırken beklenmeyen hata oluştu."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const pickFile = async () => {
     setLoading(true);
@@ -135,27 +162,59 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
 
         <div className="import-intro-card">
           <div>
-            <strong>Farklı Excel formatlarına uyum</strong>
+            <strong>Domizan şablonu ile başla</strong>
             <p>
-              Sistem başlıkları otomatik tahmin eder. Yine de içe almadan önce alan eşlemesini sen
-              onaylarsın.
+              En sorunsuz akış, bizim hazırladığımız mükellef şablonunu doldurup içe almaktır.
+              Farklı dosyaları yine deneyebilirsin ama ana standart Domizan formatıdır.
             </p>
           </div>
 
-          <button className="primary-button" disabled={loading} onClick={() => void pickFile()} type="button">
-            <FileSpreadsheet size={16} />
-            <span>{loading ? "Dosya okunuyor..." : "Excel dosyası seç"}</span>
-          </button>
+          <div className="import-intro-actions">
+            <button
+              className="secondary-button"
+              disabled={loading}
+              onClick={() => void prepareTemplate()}
+              type="button"
+            >
+              <Download size={16} />
+              <span>{loading ? "Hazırlanıyor..." : "Şablonu oluştur ve aç"}</span>
+            </button>
+
+            <button className="primary-button" disabled={loading} onClick={() => void pickFile()} type="button">
+              <FileSpreadsheet size={16} />
+              <span>{loading ? "Dosya okunuyor..." : "Excel dosyası seç"}</span>
+            </button>
+          </div>
         </div>
 
         {!preview && (
           <div className="empty-import-state">
             <p className="eyebrow">Adım 1</p>
-            <h4>Önce dosyanı seç</h4>
-            <p>
-              `.xlsx`, `.xls` veya `.csv` yükleyebilirsin. Sistem ilk sayfayı analiz edip sana
-              eşleme önerileri çıkaracak.
-            </p>
+            <h4>Önce Domizan şablonunu doldur</h4>
+            <p>Bir kere bu düzene geçtiğinde mükellef içe aktarma tarafı çok daha sakin ilerler.</p>
+
+            <div className="template-guidance-grid">
+              <article className="template-guidance-card">
+                <strong>Kurallar</strong>
+                <ul className="template-guidance-list">
+                  {DOMIZAN_CLIENT_IMPORT_TEMPLATE_GUIDANCE.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </article>
+
+              <article className="template-guidance-card">
+                <strong>Beklenen kolonlar</strong>
+                <div className="template-column-list">
+                  {DOMIZAN_CLIENT_IMPORT_TEMPLATE_COLUMNS.map((column) => (
+                    <span key={column.field} className="template-column-pill">
+                      {column.label}
+                      {column.required ? " *" : ""}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            </div>
           </div>
         )}
 

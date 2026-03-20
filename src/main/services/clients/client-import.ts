@@ -37,6 +37,8 @@ const FIELD_SYNONYMS: Record<ClientImportField, string[]> = {
     "vergino",
     "vergikimlik",
     "vergikimlikno",
+    "vergitckimlik",
+    "vergitckimlikno",
     "tckn",
     "tc",
     "tcno",
@@ -44,7 +46,7 @@ const FIELD_SYNONYMS: Record<ClientImportField, string[]> = {
     "kimliknumarasi"
   ],
   taxOffice: ["vergidairesi", "vd", "vergi"],
-  authorizedPerson: ["yetkili", "ilgili", "muhatap", "sorumlu", "temsilci"],
+  authorizedPerson: ["yetkili", "yetkilikisi", "ilgili", "muhatap", "sorumlu", "temsilci"],
   phone: ["telefon", "telefonno", "telefonnumarasi", "gsm", "cep"],
   email: ["eposta", "email", "mail"],
   city: ["il", "sehir", "ilce", "lokasyon", "bolge"],
@@ -54,6 +56,41 @@ const FIELD_SYNONYMS: Record<ClientImportField, string[]> = {
 
 const CSV_ENCODINGS = ["utf8", "windows-1254", "iso-8859-9"] as const;
 const WORKBOOK_EXTENSIONS = new Set([".xlsx", ".xlsm", ".xltx", ".xltm"]);
+const PREFERRED_SHEET_KEYWORDS = [
+  "mukellef",
+  "musteri",
+  "firma",
+  "cari",
+  "liste",
+  "listesi",
+  "clients",
+  "client"
+];
+const DISCOURAGED_SHEET_KEYWORDS = [
+  "ozet",
+  "dashboard",
+  "pivot",
+  "grafik",
+  "chart",
+  "rapor",
+  "raporu",
+  "ayar",
+  "settings",
+  "talimat",
+  "yardim",
+  "help"
+];
+
+type ParsedWorkbookSheet = {
+  sheetName: string;
+  rows: string[][];
+};
+
+type ParsedWorkbookFile = {
+  fileName: string;
+  filePath: string;
+  sheets: ParsedWorkbookSheet[];
+};
 
 const normalizeCell = (value: unknown): string => {
   if (value === null || value === undefined) {
@@ -177,26 +214,7 @@ const getWorksheetRows = (worksheet: ExcelJS.Worksheet) => {
   return rows;
 };
 
-const scoreWorksheetRows = (rows: string[][]) => {
-  const nonEmptyRows = rows.filter((row) => row.some(Boolean));
-  const maxWidth = Math.max(1, ...nonEmptyRows.map((row) => row.filter(Boolean).length));
-  const headerSignal = nonEmptyRows.slice(0, 6).reduce((bestScore, row) => {
-    const rowScore = row.reduce((score, cell) => {
-      const normalized = normalizeLookup(cell);
-      const hasKnownField = Object.values(FIELD_SYNONYMS).some((values) =>
-        values.some((value) => normalized.includes(value))
-      );
-
-      return score + (hasKnownField ? 6 : 0);
-    }, 0);
-
-    return Math.max(bestScore, rowScore);
-  }, 0);
-
-  return nonEmptyRows.length * 8 + maxWidth * 3 + headerSignal;
-};
-
-const readWorksheetRows = async (filePath: string) => {
+const readWorksheetRows = async (filePath: string): Promise<ParsedWorkbookFile> => {
   const extension = path.extname(filePath).toLocaleLowerCase("tr-TR");
   if (extension === ".xls") {
     throw new Error("Eski .xls dosyaları için lütfen dosyayı .xlsx veya .csv olarak kaydedip tekrar deneyin.");
@@ -210,8 +228,12 @@ const readWorksheetRows = async (filePath: string) => {
     return {
       fileName: path.basename(filePath),
       filePath,
-      sheetName: "CSV",
-      rows: readCsvRows(filePath)
+      sheets: [
+        {
+          sheetName: "CSV",
+          rows: readCsvRows(filePath)
+        }
+      ]
     };
   }
 
@@ -234,22 +256,19 @@ const readWorksheetRows = async (filePath: string) => {
 
   const worksheetCandidates = workbook.worksheets
     .map((worksheet) => ({
-      worksheet,
+      sheetName: worksheet.name,
       rows: getWorksheetRows(worksheet)
     }))
-    .filter((candidate) => candidate.rows.some((row) => row.some(Boolean)))
-    .sort((left, right) => scoreWorksheetRows(right.rows) - scoreWorksheetRows(left.rows));
+    .filter((candidate) => candidate.rows.some((row) => row.some(Boolean)));
 
-  const selectedWorksheet = worksheetCandidates[0];
-  if (!selectedWorksheet) {
+  if (worksheetCandidates.length === 0) {
     throw new Error("İçe aktarılacak sayfa bulunamadı.");
   }
 
   return {
     fileName: path.basename(filePath),
     filePath,
-    sheetName: selectedWorksheet.worksheet.name,
-    rows: selectedWorksheet.rows
+    sheets: worksheetCandidates
   };
 };
 
@@ -398,6 +417,46 @@ const buildSuggestedMapping = (columns: ClientImportColumn[]) => {
   return mapping;
 };
 
+const analyzeSheetCandidate = (sheet: ParsedWorkbookSheet) => {
+  const headerRowIndex = detectHeaderRowIndex(sheet.rows);
+  const columns = buildColumns(sheet.rows, headerRowIndex);
+  const suggestedMapping = buildSuggestedMapping(columns);
+  const dataRows = sheet.rows.slice(headerRowIndex + 1).filter((row) => row.some(Boolean));
+  const totalConfidence = columns.reduce((sum, column) => sum + column.confidence, 0);
+  const mappedFieldCount = Object.keys(suggestedMapping).length;
+  const headerScore = scoreHeaderRow(sheet.rows[headerRowIndex] ?? []);
+  const normalizedSheetName = normalizeLookup(sheet.sheetName);
+  const sheetNameBonus = PREFERRED_SHEET_KEYWORDS.reduce(
+    (score, keyword) => score + (normalizedSheetName.includes(keyword) ? 18 : 0),
+    0
+  );
+  const sheetNamePenalty = DISCOURAGED_SHEET_KEYWORDS.reduce(
+    (score, keyword) => score + (normalizedSheetName.includes(keyword) ? 14 : 0),
+    0
+  );
+  const previewPenalty = dataRows.length === 0 ? 60 : 0;
+  const sparsePenalty = columns.length <= 1 ? 35 : 0;
+  const selectionScore =
+    mappedFieldCount * 35 +
+    totalConfidence * 20 +
+    Math.min(dataRows.length, 80) +
+    Math.max(headerScore, 0) * 4 +
+    sheetNameBonus -
+    sheetNamePenalty -
+    previewPenalty -
+    sparsePenalty;
+
+  return {
+    sheetName: sheet.sheetName,
+    rows: sheet.rows,
+    headerRowIndex,
+    columns,
+    suggestedMapping,
+    dataRows,
+    selectionScore
+  };
+};
+
 const buildRawRowObject = (columns: ClientImportColumn[], row: string[]) =>
   columns.reduce<Record<string, string>>((record, column) => {
     record[column.key] = row[column.index] || "";
@@ -479,10 +538,17 @@ const buildFormInput = (
 
 const parseImportFile = async (filePath: string) => {
   const workbook = await readWorksheetRows(filePath);
-  const headerRowIndex = detectHeaderRowIndex(workbook.rows);
-  const columns = buildColumns(workbook.rows, headerRowIndex);
-  const suggestedMapping = buildSuggestedMapping(columns);
-  const dataRows = workbook.rows.slice(headerRowIndex + 1).filter((row) => row.some(Boolean));
+  const analyzedSheets = workbook.sheets
+    .map((sheet) => analyzeSheetCandidate(sheet))
+    .sort((left, right) => right.selectionScore - left.selectionScore);
+
+  const selectedSheet = analyzedSheets[0];
+
+  if (!selectedSheet) {
+    throw new Error("Ice aktarim icin uygun veri sayfasi bulunamadi.");
+  }
+
+  const { headerRowIndex, columns, suggestedMapping, dataRows } = selectedSheet;
 
   const previewRows = dataRows
     .slice(0, 18)
@@ -495,10 +561,16 @@ const parseImportFile = async (filePath: string) => {
     );
   }
 
+  if (workbook.sheets.length > 1) {
+    globalWarnings.push(
+      `"${selectedSheet.sheetName}" sayfasi en uygun veri alani olarak secildi. Farkli bir liste varsa once bu sayfayi kontrol edin.`
+    );
+  }
+
   return {
     filePath: workbook.filePath,
     fileName: workbook.fileName,
-    sheetName: workbook.sheetName,
+    sheetName: selectedSheet.sheetName,
     headerRowIndex,
     totalRows: dataRows.length,
     columns,
@@ -516,7 +588,7 @@ export const pickClientImportFile = async (): Promise<ClientImportFile | null> =
     filters: [
       {
         name: "Excel ve CSV",
-        extensions: ["xlsx", "xlsm", "xltx", "xltm", "xls", "csv"]
+        extensions: ["xlsx", "xlsm", "xltx", "xltm", "csv"]
       }
     ]
   });

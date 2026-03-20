@@ -233,6 +233,14 @@ export type ClientImportFile = {
   fileName: string;
 };
 
+export type ClientImportTemplateResult = {
+  folderPath: string;
+  xlsxPath: string;
+  csvPath: string;
+  opened: boolean;
+  error: string | null;
+};
+
 export type ClientImportColumn = {
   key: string;
   index: number;
@@ -291,6 +299,7 @@ export type DomizanApi = {
   updateClient: (input: ClientUpdateInput) => Promise<ClientRecord>;
   setClientStatus: (input: ClientStatusUpdateInput) => Promise<ClientRecord>;
   openClientFolder: (clientId: number) => Promise<FolderOpenResult>;
+  prepareClientImportTemplate: () => Promise<ClientImportTemplateResult>;
   pickClientImportFile: () => Promise<ClientImportFile | null>;
   previewClientImport: (filePath: string) => Promise<ClientImportPreview>;
   commitClientImport: (input: ClientImportCommitInput) => Promise<ClientImportCommitResult>;
