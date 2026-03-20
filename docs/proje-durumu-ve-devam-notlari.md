@@ -158,6 +158,15 @@ Hazır:
 - GitHub Releases tabanlı sıfır maliyetli yayın modeli kuruldu
 - GitHub Actions release workflow eklendi
 
+Canlı durum:
+
+- `v0.1.0` GitHub release yayınlandı
+- Windows installer canlı
+- macOS Apple Silicon installer canlı
+- `latest.yml` ve `latest-mac.yml` yayınlandı
+- landing indirme sayfası release verisini canlı okuyor
+- `macOS Intel` artefaktı bu ilk koşuda oluşmadı ve ayrı takip edilecek
+
 ### 4.9. Hızlı Erişim Test Araçları
 
 Hazır:
@@ -256,6 +265,8 @@ Aktif test başlıkları:
 - Lemon test mode satın alma ve lisans aktivasyonu
 - mükellef oluşturma ve `Bilgi.txt`
 - Excel / CSV içe aktarma
+- landing üzerinden gerçek Windows indirme testi
+- kurulu sürümden `0.1.1` update testi
 
 Test planı:
 
@@ -274,6 +285,7 @@ Henüz sonraki fazda:
 - beyanname ve kritik tarih hatırlatmaları
 - çok kullanıcılı ofis rolleri
 - Lemon canlı moda geçiş ve domain mapping tamamlama
+- macOS Intel release artefaktının da kararlı şekilde üretilmesi
 
 ## 8. Sonraki Doğru Adımlar
 
