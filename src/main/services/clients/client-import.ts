@@ -17,6 +17,7 @@ import type {
   ClientImportPreviewRow,
   ClientRecord
 } from "../../../shared/contracts";
+import { requireOperationalAccess } from "../licensing/access-service";
 import { listClients, upsertImportedClient } from "./client-service";
 
 const FIELD_SYNONYMS: Record<ClientImportField, string[]> = {
@@ -52,6 +53,7 @@ const FIELD_SYNONYMS: Record<ClientImportField, string[]> = {
 };
 
 const CSV_ENCODINGS = ["utf8", "windows-1254", "iso-8859-9"] as const;
+const WORKBOOK_EXTENSIONS = new Set([".xlsx", ".xlsm", ".xltx", ".xltm"]);
 
 const normalizeCell = (value: unknown): string => {
   if (value === null || value === undefined) {
@@ -67,6 +69,14 @@ const normalizeCell = (value: unknown): string => {
   }
 
   if (typeof value === "object") {
+    if ("hyperlink" in value && typeof value.hyperlink === "string") {
+      return normalizeCell(value.text ?? value.hyperlink);
+    }
+
+    if ("formula" in value && "result" in value) {
+      return normalizeCell(value.result);
+    }
+
     if ("text" in value && typeof value.text === "string") {
       return value.text.replace(/\s+/g, " ").trim();
     }
@@ -132,6 +142,60 @@ const readCsvRows = (filePath: string) => {
   return bestCandidate.rows;
 };
 
+const getWorksheetRows = (worksheet: ExcelJS.Worksheet) => {
+  const rows: string[][] = [];
+
+  worksheet.eachRow({ includeEmpty: false }, (row) => {
+    const cellsByIndex = new Map<number, string>();
+    let maxColumn = 0;
+
+    row.eachCell({ includeEmpty: false }, (cell, columnNumber) => {
+      const rawValue = cell.text?.trim()
+        ? cell.text
+        : cell.isMerged && cell.master
+          ? cell.master.text || cell.master.value
+          : cell.value;
+      const normalizedValue = normalizeCell(rawValue);
+
+      if (!normalizedValue) {
+        return;
+      }
+
+      cellsByIndex.set(columnNumber - 1, normalizedValue);
+      maxColumn = Math.max(maxColumn, columnNumber);
+    });
+
+    if (maxColumn === 0) {
+      return;
+    }
+
+    rows.push(
+      Array.from({ length: maxColumn }, (_, index) => cellsByIndex.get(index) ?? "")
+    );
+  });
+
+  return rows;
+};
+
+const scoreWorksheetRows = (rows: string[][]) => {
+  const nonEmptyRows = rows.filter((row) => row.some(Boolean));
+  const maxWidth = Math.max(1, ...nonEmptyRows.map((row) => row.filter(Boolean).length));
+  const headerSignal = nonEmptyRows.slice(0, 6).reduce((bestScore, row) => {
+    const rowScore = row.reduce((score, cell) => {
+      const normalized = normalizeLookup(cell);
+      const hasKnownField = Object.values(FIELD_SYNONYMS).some((values) =>
+        values.some((value) => normalized.includes(value))
+      );
+
+      return score + (hasKnownField ? 6 : 0);
+    }, 0);
+
+    return Math.max(bestScore, rowScore);
+  }, 0);
+
+  return nonEmptyRows.length * 8 + maxWidth * 3 + headerSignal;
+};
+
 const readWorksheetRows = async (filePath: string) => {
   const extension = path.extname(filePath).toLocaleLowerCase("tr-TR");
   if (extension === ".xls") {
@@ -151,31 +215,41 @@ const readWorksheetRows = async (filePath: string) => {
     };
   }
 
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(filePath);
-
-  const worksheet = workbook.worksheets[0];
-  if (!worksheet) {
-    throw new Error("İçe aktarılacak sayfa bulunamadı.");
+  if (!WORKBOOK_EXTENSIONS.has(extension)) {
+    throw new Error(
+      "Bu Excel uzantisi su anda desteklenmiyor. Lutfen .xlsx, .xlsm, .xltx, .xltm veya .csv kullanin."
+    );
   }
 
-  const width = worksheet.columnCount || 1;
-  const rows: string[][] = [];
-
-  for (let rowNumber = 1; rowNumber <= worksheet.rowCount; rowNumber += 1) {
-    const row = worksheet.getRow(rowNumber);
-    const cells = Array.from({ length: width }, (_, index) =>
-      normalizeCell(row.getCell(index + 1).value)
+  const workbook = new ExcelJS.Workbook();
+  try {
+    await workbook.xlsx.load(fs.readFileSync(filePath));
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? `Excel dosyasi okunamadi: ${error.message}`
+        : "Excel dosyasi okunamadi."
     );
+  }
 
-    rows.push(cells);
+  const worksheetCandidates = workbook.worksheets
+    .map((worksheet) => ({
+      worksheet,
+      rows: getWorksheetRows(worksheet)
+    }))
+    .filter((candidate) => candidate.rows.some((row) => row.some(Boolean)))
+    .sort((left, right) => scoreWorksheetRows(right.rows) - scoreWorksheetRows(left.rows));
+
+  const selectedWorksheet = worksheetCandidates[0];
+  if (!selectedWorksheet) {
+    throw new Error("İçe aktarılacak sayfa bulunamadı.");
   }
 
   return {
     fileName: path.basename(filePath),
     filePath,
-    sheetName: worksheet.name,
-    rows
+    sheetName: selectedWorksheet.worksheet.name,
+    rows: selectedWorksheet.rows
   };
 };
 
@@ -436,12 +510,13 @@ const parseImportFile = async (filePath: string) => {
 };
 
 export const pickClientImportFile = async (): Promise<ClientImportFile | null> => {
+  await requireOperationalAccess();
   const result = await dialog.showOpenDialog({
     properties: ["openFile"],
     filters: [
       {
         name: "Excel ve CSV",
-        extensions: ["xlsx", "xls", "csv"]
+        extensions: ["xlsx", "xlsm", "xltx", "xltm", "xls", "csv"]
       }
     ]
   });
@@ -458,6 +533,7 @@ export const pickClientImportFile = async (): Promise<ClientImportFile | null> =
 };
 
 export const previewClientImport = async (filePath: string): Promise<ClientImportPreview> => {
+  await requireOperationalAccess();
   const preview = await parseImportFile(filePath);
 
   return {
@@ -476,6 +552,7 @@ export const previewClientImport = async (filePath: string): Promise<ClientImpor
 export const commitClientImport = async (
   input: ClientImportCommitInput
 ): Promise<ClientImportCommitResult> => {
+  await requireOperationalAccess();
   const preview = await parseImportFile(input.filePath);
 
   if (!input.mapping.name) {

@@ -344,6 +344,23 @@ export const getAccessSnapshot = async (): Promise<AccessSnapshot> => {
   };
 };
 
+export const requireOperationalAccess = async () => {
+  const access = await getAccessSnapshot();
+
+  if (access.canUseApp) {
+    return access;
+  }
+
+  if (access.requiresPurchase) {
+    throw new Error(
+      access.reason ??
+        "Deneme suresi doldu. Domizan goruntuleme modunda acildi. Islem yapmak icin lisans satin alin veya mevcut lisansi etkinlestirin."
+    );
+  }
+
+  throw new Error(access.reason ?? "Bu kurulumda islem yapmaya su anda izin verilmiyor.");
+};
+
 export const getOnboardingSnapshot = async (): Promise<OnboardingSnapshot> => {
   const workspace = await getWorkspaceProfile();
   const access = await getAccessSnapshot();

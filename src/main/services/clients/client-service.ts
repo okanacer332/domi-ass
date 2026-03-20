@@ -15,6 +15,7 @@ import type {
 } from "../../../shared/contracts";
 import { getDatabase, persistDatabase } from "../../database/connection";
 import { clientsTable } from "../../database/schema";
+import { requireOperationalAccess } from "../licensing/access-service";
 import {
   buildClientFolderSlug,
   ensureClientFolderStructure,
@@ -191,6 +192,7 @@ export const listClients = async (): Promise<ClientRecord[]> => {
 };
 
 export const createClient = async (input: ClientFormInput): Promise<ClientRecord> => {
+  await requireOperationalAccess();
   const parsed = clientSchema.parse(input);
   const identity = await ensureClientUniqueness(parsed);
 
@@ -225,6 +227,7 @@ export const createClient = async (input: ClientFormInput): Promise<ClientRecord
 };
 
 export const updateClient = async (input: ClientUpdateInput): Promise<ClientRecord> => {
+  await requireOperationalAccess();
   const parsed = clientUpdateSchema.parse(input);
   const existing = await getClientById(parsed.id);
   const identity = await ensureClientUniqueness(parsed, parsed.id);
@@ -258,6 +261,7 @@ export const updateClient = async (input: ClientUpdateInput): Promise<ClientReco
 export const setClientStatus = async (
   input: ClientStatusUpdateInput
 ): Promise<ClientRecord> => {
+  await requireOperationalAccess();
   const parsed = clientStatusSchema.parse(input);
   const db = getDatabase();
 
@@ -276,6 +280,7 @@ export const setClientStatus = async (
 };
 
 export const openClientFolder = async (clientId: number) => {
+  await requireOperationalAccess();
   const row = await getClientById(clientId);
   ensureClientFolderAssets(mapClientRow(row), true);
   return openClientFolderPath(row.folderName);

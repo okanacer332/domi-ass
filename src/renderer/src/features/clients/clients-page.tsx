@@ -1,7 +1,11 @@
 import { startTransition, useDeferredValue, useEffect, useState } from "react";
-import { FileUp, Plus, Search } from "lucide-react";
+import { FileUp, KeyRound, Plus, Search, ShoppingCart } from "lucide-react";
 
-import type { ClientFormInput, ClientRecord } from "../../../../shared/contracts";
+import type {
+  BootstrapPayload,
+  ClientFormInput,
+  ClientRecord
+} from "../../../../shared/contracts";
 import { StatePanel } from "../../components/ui/state-panel";
 import { useClientsStore } from "./client-store";
 import { ClientFormSheet } from "./client-form-sheet";
@@ -9,7 +13,13 @@ import { ClientImportSheet } from "./client-import-sheet";
 import { ClientTable } from "./client-table";
 import { getClientSearchBlob } from "./client-utils";
 
-export function ClientsPage() {
+type ClientsPageProps = {
+  bootstrap: BootstrapPayload;
+  onUnlockAccess: () => void;
+  onOpenCheckout: () => void;
+};
+
+export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: ClientsPageProps) {
   const clients = useClientsStore((state) => state.clients);
   const status = useClientsStore((state) => state.status);
   const error = useClientsStore((state) => state.error);
@@ -27,10 +37,24 @@ export function ClientsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search);
+  const operationsLocked =
+    bootstrap.onboarding.isComplete &&
+    bootstrap.access.requiresPurchase &&
+    !bootstrap.access.canUseApp;
 
   useEffect(() => {
     void loadClients();
   }, [loadClients]);
+
+  useEffect(() => {
+    if (!operationsLocked) {
+      return;
+    }
+
+    setFormMode(null);
+    setSelectedClient(null);
+    setShowImport(false);
+  }, [operationsLocked]);
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
@@ -45,6 +69,10 @@ export function ClientsPage() {
   const passiveCount = clients.filter((client) => client.status === "passive").length;
 
   const openCreateSheet = () => {
+    if (operationsLocked) {
+      return;
+    }
+
     startTransition(() => {
       setSelectedClient(null);
       setFormMode("create");
@@ -53,6 +81,10 @@ export function ClientsPage() {
   };
 
   const openEditSheet = (client: ClientRecord) => {
+    if (operationsLocked) {
+      return;
+    }
+
     startTransition(() => {
       setSelectedClient(client);
       setFormMode("edit");
@@ -92,6 +124,10 @@ export function ClientsPage() {
   };
 
   const handleToggleStatus = async (client: ClientRecord) => {
+    if (operationsLocked) {
+      return;
+    }
+
     setActionError(null);
 
     try {
@@ -107,6 +143,10 @@ export function ClientsPage() {
   };
 
   const handleOpenFolder = async (client: ClientRecord) => {
+    if (operationsLocked) {
+      return;
+    }
+
     setActionError(null);
     const result = await openClientFolder(client.id);
 
@@ -148,16 +188,50 @@ export function ClientsPage() {
         </div>
 
         <div className="clients-toolbar__actions">
-          <button className="secondary-button" onClick={() => setShowImport(true)} type="button">
+          <button
+            className="secondary-button"
+            disabled={operationsLocked}
+            onClick={() => setShowImport(true)}
+            type="button"
+          >
             <FileUp size={16} />
             <span>Excel içe aktar</span>
           </button>
-          <button className="primary-button" onClick={openCreateSheet} type="button">
+          <button
+            className="primary-button"
+            disabled={operationsLocked}
+            onClick={openCreateSheet}
+            type="button"
+          >
             <Plus size={16} />
             <span>Yeni mükellef</span>
           </button>
         </div>
       </section>
+
+      {operationsLocked && (
+        <section className="readonly-notice">
+          <div className="readonly-notice__copy">
+            <p className="eyebrow">Lisans Gerekli</p>
+            <h4>MÃ¼kellef kayÄ±tlarÄ±nÄ± gÃ¶rebilirsin, fakat iÅŸlem yapamazsÄ±n.</h4>
+            <p>
+              Deneme sÃ¼resi dolduÄŸu iÃ§in yeni mÃ¼kellef ekleme, Excel iÃ§e aktarma, dÃ¼zenleme,
+              pasife Ã§ekme ve klasÃ¶r aÃ§ma geÃ§ici olarak kapatÄ±ldÄ±.
+            </p>
+          </div>
+
+          <div className="readonly-notice__actions">
+            <button className="secondary-button" onClick={onUnlockAccess} type="button">
+              <KeyRound size={16} />
+              <span>LisansÄ± etkinleÅŸtir</span>
+            </button>
+            <button className="primary-button" onClick={onOpenCheckout} type="button">
+              <ShoppingCart size={16} />
+              <span>SatÄ±n alma sayfasÄ±nÄ± aÃ§</span>
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="stats-grid clients-stats-grid">
         <article className="stat-card">
@@ -215,6 +289,7 @@ export function ClientsPage() {
         ) : (
           <ClientTable
             clients={filteredClients}
+            disabled={operationsLocked}
             onEdit={openEditSheet}
             onOpenFolder={handleOpenFolder}
             onToggleStatus={handleToggleStatus}
@@ -232,7 +307,7 @@ export function ClientsPage() {
         />
       )}
 
-      {showImport && (
+      {showImport && !operationsLocked && (
         <ClientImportSheet
           onClose={() => setShowImport(false)}
           onImported={async () => {

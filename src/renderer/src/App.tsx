@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { KeyRound, ShoppingCart, X } from "lucide-react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppSidebar } from "./components/layout/app-sidebar";
@@ -21,6 +22,8 @@ function App() {
   const watchUpdateState = useAppStore((state) => state.watchUpdateState);
   const checkForUpdates = useAppStore((state) => state.checkForUpdates);
   const installUpdate = useAppStore((state) => state.installUpdate);
+  const openCheckout = useAppStore((state) => state.openCheckout);
+  const [showAccessCenter, setShowAccessCenter] = useState(false);
 
   useEffect(() => {
     void loadBootstrap();
@@ -31,6 +34,12 @@ function App() {
       unsubscribe();
     };
   }, [loadBootstrap, loadUpdateState, watchUpdateState]);
+
+  useEffect(() => {
+    if (bootstrap?.access.canUseApp) {
+      setShowAccessCenter(false);
+    }
+  }, [bootstrap?.access.canUseApp]);
 
   if (status === "loading") {
     return (
@@ -66,7 +75,12 @@ function App() {
     return null;
   }
 
-  const shouldShowOnboarding = !bootstrap.onboarding.isComplete || !bootstrap.access.canUseApp;
+  const isPurchaseLocked =
+    bootstrap.onboarding.isComplete &&
+    bootstrap.access.requiresPurchase &&
+    !bootstrap.access.canUseApp;
+  const shouldShowOnboarding =
+    !bootstrap.onboarding.isComplete || (!bootstrap.access.canUseApp && !isPurchaseLocked);
 
   if (shouldShowOnboarding) {
     return (
@@ -97,10 +111,61 @@ function App() {
           updateState={updateState}
         />
 
+        {isPurchaseLocked && (
+          <section className="access-lock-banner">
+            <div className="access-lock-banner__copy">
+              <p className="eyebrow">Goruntuleme Modu</p>
+              <h3>Deneme suresi doldu. Tum veriler gorunur, islemler kilitli.</h3>
+              <p>
+                {bootstrap.access.reason ??
+                  "Kayitlari inceleyebilirsin ancak yeni musteri ekleme, import, duzenleme ve klasor islemleri lisans etkinlesene kadar durduruldu."}
+              </p>
+            </div>
+
+            <div className="access-lock-banner__actions">
+              <button
+                className="secondary-button"
+                onClick={() => setShowAccessCenter(true)}
+                type="button"
+              >
+                <KeyRound size={16} />
+                <span>Lisansi etkinlestir</span>
+              </button>
+              <button
+                className="primary-button"
+                onClick={() =>
+                  void openCheckout({
+                    email: bootstrap.workspace?.ownerEmail ?? undefined,
+                    name: bootstrap.workspace?.ownerName ?? undefined
+                  })
+                }
+                type="button"
+              >
+                <ShoppingCart size={16} />
+                <span>Satın alma sayfasini ac</span>
+              </button>
+            </div>
+          </section>
+        )}
+
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage bootstrap={bootstrap} />} />
-          <Route path="/mukellefler" element={<ClientsPage />} />
+          <Route
+            path="/mukellefler"
+            element={
+              <ClientsPage
+                bootstrap={bootstrap}
+                onOpenCheckout={() =>
+                  void openCheckout({
+                    email: bootstrap.workspace?.ownerEmail ?? undefined,
+                    name: bootstrap.workspace?.ownerName ?? undefined
+                  })
+                }
+                onUnlockAccess={() => setShowAccessCenter(true)}
+              />
+            }
+          />
           <Route path="/gelen-kutusu" element={<PlaceholderPage title="Gelen Kutusu" />} />
           <Route path="/hatirlatmalar" element={<PlaceholderPage title="Hatırlatmalar" />} />
           <Route path="/ayarlar" element={<PlaceholderPage title="Ayarlar" />} />
@@ -108,6 +173,26 @@ function App() {
       </main>
 
       <MascotDock />
+
+      {showAccessCenter && (
+        <div className="access-center-overlay" role="presentation">
+          <div
+            className="access-center-overlay__scrim"
+            onClick={() => setShowAccessCenter(false)}
+          />
+          <div className="access-center-overlay__panel">
+            <button
+              aria-label="Erisim merkezini kapat"
+              className="sheet-close-button access-center-overlay__close"
+              onClick={() => setShowAccessCenter(false)}
+              type="button"
+            >
+              <X size={18} />
+            </button>
+            <OnboardingPage bootstrap={bootstrap} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

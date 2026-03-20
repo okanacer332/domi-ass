@@ -11,6 +11,7 @@ import { getClientIdentitySummary, getClientStatusLabel } from "./client-utils";
 
 type ClientTableProps = {
   clients: ClientRecord[];
+  disabled?: boolean;
   onEdit: (client: ClientRecord) => void;
   onToggleStatus: (client: ClientRecord) => void;
   onOpenFolder: (client: ClientRecord) => void;
@@ -18,6 +19,7 @@ type ClientTableProps = {
 
 export function ClientTable({
   clients,
+  disabled = false,
   onEdit,
   onToggleStatus,
   onOpenFolder
@@ -62,15 +64,30 @@ export function ClientTable({
       header: "İşlemler",
       cell: ({ row }) => (
         <div className="table-actions">
-          <button className="table-action-button" onClick={() => onOpenFolder(row.original)} type="button">
+          <button
+            className="table-action-button"
+            disabled={disabled}
+            onClick={() => onOpenFolder(row.original)}
+            type="button"
+          >
             <FolderOpen size={16} />
             <span>Klasörü aç</span>
           </button>
-          <button className="table-action-button" onClick={() => onEdit(row.original)} type="button">
+          <button
+            className="table-action-button"
+            disabled={disabled}
+            onClick={() => onEdit(row.original)}
+            type="button"
+          >
             <PencilLine size={16} />
             <span>Düzenle</span>
           </button>
-          <button className="table-action-button" onClick={() => onToggleStatus(row.original)} type="button">
+          <button
+            className="table-action-button"
+            disabled={disabled}
+            onClick={() => onToggleStatus(row.original)}
+            type="button"
+          >
             <UserRoundX size={16} />
             <span>{row.original.status === "active" ? "Pasife çek" : "Aktifleştir"}</span>
           </button>

@@ -118,6 +118,10 @@ Hazır:
 - satır bazlı uyarılar
 - upsert mantığı
 
+- `.xlsm`, `.xltx` ve `.xltm` desteÄŸi
+- boÅŸ olmayan en doÄŸru sayfayÄ± otomatik seÃ§me
+- formÃ¼l, rich text ve birleÅŸik hÃ¼creleri daha toleranslÄ± okuma
+
 Kararlar:
 
 - `.xls` desteklenmiyor
@@ -325,3 +329,11 @@ Bugün itibarıyla:
 - Cloud Run üzerinde canlı lisans backend’i vardır
 
 Bir sonraki büyük kırılım belge operasyon çekirdeğidir.
+## 11. 20 Mart 2026 GÃ¼ncellemesi
+
+- trial sÃ¼resi bitince uygulama onboarding'e geri dÃ¶nmÃ¼yor; readonly gÃ¶rÃ¼ntÃ¼leme modunda aÃ§Ä±lÄ±yor
+- readonly modda create / update / import / klasÃ¶r iÅŸlemleri renderer ve main process tarafÄ±nda birlikte kilitleniyor
+- lisans satÄ±n alma ve lisans etkinleÅŸtirme CTA'larÄ± uygulama iÃ§inde gÃ¶rÃ¼nÃ¼r tutuldu
+- Excel import tarafÄ±nda `.xlsx`, `.xlsm`, `.xltx`, `.xltm` okuma hattÄ± gÃ¼Ã§lendirildi
+- boÅŸ olmayan en uygun worksheet seÃ§imi ve hÃ¼cre metni normalizasyonu geliÅŸtirildi
+- saÄŸ alttaki maskot gelecekteki chatbot alanÄ± iÃ§in yaklaÅŸÄ±k 4x kÃ¼Ã§Ã¼ltÃ¼ldÃ¼
