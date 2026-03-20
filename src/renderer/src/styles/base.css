@@ -1,0 +1,56 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(121, 144, 230, 0.22), transparent 24%),
+    radial-gradient(circle at top right, rgba(187, 202, 255, 0.34), transparent 28%),
+    linear-gradient(180deg, #f7f9ff 0%, #eef2ff 44%, #e9efff 100%);
+  color: var(--text);
+}
+
+body {
+  min-height: 100vh;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+code {
+  font-family: "Cascadia Code", "SFMono-Regular", "Consolas", monospace;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+p {
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}

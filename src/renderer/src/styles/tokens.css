@@ -1,0 +1,24 @@
+:root {
+  color-scheme: light;
+  font-family: "Aptos", "Segoe UI", "Segoe UI Variable Text", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Aptos Display", "Segoe UI Variable Display", "Aptos", "Segoe UI", sans-serif;
+  --bg: #eef2ff;
+  --bg-secondary: #f7f9ff;
+  --surface: rgba(255, 255, 255, 0.76);
+  --surface-strong: rgba(255, 255, 255, 0.94);
+  --surface-soft: rgba(241, 245, 255, 0.88);
+  --line: rgba(34, 53, 122, 0.12);
+  --line-strong: rgba(34, 53, 122, 0.2);
+  --text: #15204a;
+  --muted: #5e6e98;
+  --brand-950: #13204d;
+  --brand-900: #1a2d66;
+  --brand-800: #22357a;
+  --brand-700: #3651ad;
+  --brand-500: #7990e6;
+  --brand-200: #bbcaff;
+  --brand-100: #dce4ff;
+  --success: #3f6c5a;
+  --shadow-soft: 0 18px 60px rgba(28, 42, 93, 0.12);
+  --shadow-strong: 0 28px 80px rgba(22, 32, 74, 0.16);
+}

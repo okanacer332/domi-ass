@@ -1,0 +1,60 @@
+{
+  "name": "domizan",
+  "version": "0.1.0",
+  "description": "Mali musavir ofisleri icin yapay zeka destekli masaustu operasyon platformu.",
+  "main": "out/main/index.js",
+  "author": "Domizan",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
+    "exceljs": "^4.4.0",
+    "iconv-lite": "^0.7.2",
+    "lucide-react": "^0.511.0",
+    "papaparse": "^5.5.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.1",
+    "sql.js": "^1.13.0",
+    "zod": "^3.25.67",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "@types/sql.js": "^1.4.9",
+    "@vitejs/plugin-react": "^4.5.2",
+    "electron": "^36.3.2",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^3.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "build": {
+    "appId": "com.domizan.desktop",
+    "productName": "Domizan",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.business"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
