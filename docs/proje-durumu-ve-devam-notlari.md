@@ -260,6 +260,7 @@ Aktif test başlıkları:
 Test planı:
 
 - [manual-test-plani.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/manual-test-plani.md)
+- [hizli-test-rehberi.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/hizli-test-rehberi.md)
 
 ## 7. Açık Büyük Fazlar
 
@@ -293,6 +294,7 @@ Henüz sonraki fazda:
 - [lemon-test-modu-kurulumu.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/lemon-test-modu-kurulumu.md)
 - [cloud-run-lisans-backendi.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/cloud-run-lisans-backendi.md)
 - [manual-test-plani.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/manual-test-plani.md)
+- [hizli-test-rehberi.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/hizli-test-rehberi.md)
 - [masaustu-release-ve-update.md](C:/Users/acero/Documents/GitHub/domi-ass/docs/masaustu-release-ve-update.md)
 
 ## 10. Son Not
