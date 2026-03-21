@@ -7,6 +7,7 @@ import {
   previewClientImport
 } from "./services/clients/client-import";
 import { prepareClientImportTemplate } from "./services/clients/client-import-template";
+import { getClientDetail } from "./services/clients/client-detail";
 import {
   createClient,
   listClients,
@@ -25,6 +26,11 @@ import {
   deleteMizanCode,
   listMizanCodes
 } from "./services/mizan/mizan-service";
+import {
+  getSettingsSnapshot,
+  openPathFromSettings,
+  setThemePreference
+} from "./services/settings/settings-service";
 import {
   createPlannerNote,
   createPlannerReminder,
@@ -55,6 +61,9 @@ import {
 
 export const registerIpcHandlers = () => {
   ipcMain.handle("app:getBootstrap", async () => getBootstrapPayload());
+  ipcMain.handle("app:getSettings", async () => getSettingsSnapshot());
+  ipcMain.handle("app:setThemePreference", async (_, theme) => setThemePreference(theme));
+  ipcMain.handle("app:openPath", async (_, targetPath: string) => openPathFromSettings(targetPath));
   ipcMain.handle("app:getDashboardPlanner", async (_, referenceDate?: string) =>
     getDashboardPlanner(referenceDate)
   );
@@ -78,6 +87,7 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("planner:notes:delete", async (_, id: number) => deletePlannerNote(id));
 
   ipcMain.handle("clients:list", async () => listClients());
+  ipcMain.handle("clients:getDetail", async (_, clientId: number) => getClientDetail(clientId));
   ipcMain.handle("clients:create", async (_, input) => createClient(input));
   ipcMain.handle("clients:update", async (_, input) => updateClient(input));
   ipcMain.handle("clients:setStatus", async (_, input) => setClientStatus(input));

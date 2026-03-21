@@ -4,7 +4,7 @@ import {
   useReactTable,
   type ColumnDef
 } from "@tanstack/react-table";
-import { FolderOpen, PencilLine, UserRoundX } from "lucide-react";
+import { ArrowUpRight, FolderOpen, PencilLine, UserRoundX } from "lucide-react";
 
 import type { ClientRecord } from "../../../../shared/contracts";
 import { getClientIdentitySummary, getClientStatusLabel } from "./client-utils";
@@ -13,6 +13,7 @@ type ClientTableProps = {
   clients: ClientRecord[];
   disabled?: boolean;
   onEdit: (client: ClientRecord) => void;
+  onOpenDetail: (client: ClientRecord) => void;
   onToggleStatus: (client: ClientRecord) => void;
   onOpenFolder: (client: ClientRecord) => void;
 };
@@ -21,6 +22,7 @@ export function ClientTable({
   clients,
   disabled = false,
   onEdit,
+  onOpenDetail,
   onToggleStatus,
   onOpenFolder
 }: ClientTableProps) {
@@ -30,7 +32,14 @@ export function ClientTable({
       header: "Mükellef",
       cell: ({ row }) => (
         <div className="client-name-cell">
-          <strong>{row.original.name}</strong>
+          <button
+            className="client-link-button"
+            onClick={() => onOpenDetail(row.original)}
+            type="button"
+          >
+            <strong>{row.original.name}</strong>
+            <ArrowUpRight size={14} />
+          </button>
           <span>{row.original.taxOffice || "Vergi dairesi belirtilmedi"}</span>
         </div>
       )
@@ -64,6 +73,14 @@ export function ClientTable({
       header: "İşlemler",
       cell: ({ row }) => (
         <div className="table-actions">
+          <button
+            className="table-action-button"
+            onClick={() => onOpenDetail(row.original)}
+            type="button"
+          >
+            <ArrowUpRight size={16} />
+            <span>Detay</span>
+          </button>
           <button
             className="table-action-button"
             disabled={disabled}

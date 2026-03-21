@@ -8,9 +8,9 @@ body,
   height: 100%;
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(121, 144, 230, 0.22), transparent 24%),
-    radial-gradient(circle at top right, rgba(187, 202, 255, 0.34), transparent 28%),
-    linear-gradient(180deg, #f7f9ff 0%, #eef2ff 44%, #e9efff 100%);
+    radial-gradient(circle at top left, var(--bg-spot-a), transparent 24%),
+    radial-gradient(circle at top right, var(--bg-spot-b), transparent 28%),
+    linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 44%, var(--bg-gradient-end) 100%);
   color: var(--text);
 }
 

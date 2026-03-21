@@ -4,6 +4,11 @@
   --font-display: "Aptos Display", "Segoe UI Variable Display", "Aptos", "Segoe UI", sans-serif;
   --bg: #eef2ff;
   --bg-secondary: #f7f9ff;
+  --bg-spot-a: rgba(121, 144, 230, 0.22);
+  --bg-spot-b: rgba(187, 202, 255, 0.34);
+  --bg-gradient-start: #f7f9ff;
+  --bg-gradient-mid: #eef2ff;
+  --bg-gradient-end: #e9efff;
   --surface: rgba(255, 255, 255, 0.76);
   --surface-strong: rgba(255, 255, 255, 0.94);
   --surface-soft: rgba(241, 245, 255, 0.88);
@@ -21,4 +26,32 @@
   --success: #3f6c5a;
   --shadow-soft: 0 18px 60px rgba(28, 42, 93, 0.12);
   --shadow-strong: 0 28px 80px rgba(22, 32, 74, 0.16);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1222;
+  --bg-secondary: #141b31;
+  --bg-spot-a: rgba(62, 89, 188, 0.24);
+  --bg-spot-b: rgba(62, 121, 206, 0.16);
+  --bg-gradient-start: #0d1222;
+  --bg-gradient-mid: #111a2f;
+  --bg-gradient-end: #162039;
+  --surface: rgba(17, 26, 47, 0.78);
+  --surface-strong: rgba(19, 30, 54, 0.94);
+  --surface-soft: rgba(24, 36, 64, 0.9);
+  --line: rgba(169, 186, 255, 0.16);
+  --line-strong: rgba(169, 186, 255, 0.28);
+  --text: #edf2ff;
+  --muted: #9fb0dc;
+  --brand-950: #edf2ff;
+  --brand-900: #dce5ff;
+  --brand-800: #b8c7ff;
+  --brand-700: #8fa7ff;
+  --brand-500: #7990e6;
+  --brand-200: #32478e;
+  --brand-100: #24335f;
+  --success: #77c7a9;
+  --shadow-soft: 0 18px 60px rgba(3, 9, 23, 0.34);
+  --shadow-strong: 0 28px 80px rgba(3, 9, 23, 0.5);
 }

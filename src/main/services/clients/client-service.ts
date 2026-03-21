@@ -276,6 +276,7 @@ export const setClientStatus = async (
 
   persistDatabase();
   const client = mapClientRow(await getClientById(parsed.id));
+  ensureClientFolderStructure(client.folderName, client.status);
   ensureClientFolderAssets(client);
   return client;
 };

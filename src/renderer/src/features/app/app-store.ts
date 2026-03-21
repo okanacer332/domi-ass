@@ -7,16 +7,22 @@ import type {
   CheckoutOpenResult,
   LicenseActivationInput,
   LicenseActivationResult,
-  OnboardingSetupInput
+  OnboardingSetupInput,
+  SettingsSnapshot,
+  ThemePreference
 } from "../../../../shared/contracts";
 
 type AppStore = {
   bootstrap: BootstrapPayload | null;
+  settings: SettingsSnapshot | null;
   updateState: AppUpdateState | null;
   status: "idle" | "loading" | "ready" | "error";
   error: string | null;
   loadBootstrap: () => Promise<void>;
   refreshBootstrap: () => Promise<BootstrapPayload>;
+  loadSettings: () => Promise<void>;
+  refreshSettings: () => Promise<SettingsSnapshot>;
+  setThemePreference: (theme: ThemePreference) => Promise<SettingsSnapshot>;
   loadUpdateState: () => Promise<void>;
   watchUpdateState: () => () => void;
   checkForUpdates: () => Promise<AppUpdateState>;
@@ -33,6 +39,7 @@ const getErrorMessage = (error: unknown) =>
 
 export const useAppStore = create<AppStore>((set) => ({
   bootstrap: null,
+  settings: null,
   updateState: null,
   status: "idle",
   error: null,
@@ -50,6 +57,20 @@ export const useAppStore = create<AppStore>((set) => ({
     } catch (error) {
       set({ status: "error", error: getErrorMessage(error) });
     }
+  },
+  refreshSettings: async () => {
+    const settings = await window.domizanApi.getSettingsSnapshot();
+    set({ settings });
+    return settings;
+  },
+  loadSettings: async () => {
+    const settings = await window.domizanApi.getSettingsSnapshot();
+    set({ settings });
+  },
+  setThemePreference: async (theme) => {
+    const settings = await window.domizanApi.setThemePreference(theme);
+    set({ settings });
+    return settings;
   },
   loadUpdateState: async () => {
     const updateState = await window.domizanApi.getUpdateState();

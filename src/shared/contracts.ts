@@ -45,6 +45,7 @@ export type AppUpdateStatus =
   | "not-available"
   | "error"
   | "unsupported";
+export type ThemePreference = "system" | "light" | "dark";
 
 export type ClientImportField =
   | "name"
@@ -231,6 +232,31 @@ export type InstallationSnapshot = {
   lastSeenAt: string | null;
 };
 
+export type SettingsSnapshot = {
+  themePreference: ThemePreference;
+  app: {
+    name: string;
+    version: string;
+    isPackaged: boolean;
+    platform: string;
+    arch: string;
+    osRelease: string;
+    nodeVersion: string;
+    chromeVersion: string | null;
+    electronVersion: string;
+    userDataPath: string;
+  };
+  device: {
+    hostname: string;
+    installationId: string;
+    bindingStatus: BindingStatus;
+    sharedBindingPath: string;
+    firstBoundAt: string | null;
+    lastSeenAt: string | null;
+  };
+  directories: DomizanDirectoryMap;
+};
+
 export type TrialSnapshot = {
   status: TrialStatus;
   startedAt: string | null;
@@ -337,6 +363,24 @@ export type ClientRecord = {
   updatedAt: string;
 };
 
+export type ClientFileRecord = {
+  name: string;
+  relativePath: string;
+  absolutePath: string;
+  folderLabel: string;
+  sizeBytes: number | null;
+  modifiedAt: string | null;
+};
+
+export type ClientFolderSection = {
+  name: string;
+  path: string;
+  fileCount: number;
+  folderCount: number;
+  lastModifiedAt: string | null;
+  recentFiles: ClientFileRecord[];
+};
+
 export type ClientFormInput = {
   name: string;
   identityType?: ClientIdentityType | null;
@@ -425,6 +469,13 @@ export type InboxRouteResult = {
   document: InboxDocumentRecord;
 };
 
+export type ClientDetailSnapshot = {
+  client: ClientRecord;
+  sections: ClientFolderSection[];
+  recentFiles: ClientFileRecord[];
+  trackedDocuments: InboxDocumentRecord[];
+};
+
 export type ClientImportFile = {
   filePath: string;
   fileName: string;
@@ -502,6 +553,9 @@ export type MizanCodeDeleteResult = {
 
 export type DomizanApi = {
   getBootstrap: () => Promise<BootstrapPayload>;
+  getSettingsSnapshot: () => Promise<SettingsSnapshot>;
+  setThemePreference: (theme: ThemePreference) => Promise<SettingsSnapshot>;
+  openPath: (targetPath: string) => Promise<FolderOpenResult>;
   getDashboardPlanner: (referenceDate?: string) => Promise<DashboardPlannerPayload>;
   completeOnboarding: (input: OnboardingSetupInput) => Promise<WorkspaceProfile>;
   getUpdateState: () => Promise<AppUpdateState>;
@@ -522,6 +576,7 @@ export type DomizanApi = {
   createPlannerNote: (input: PlannerNoteCreateInput) => Promise<PlannerNoteRecord>;
   deletePlannerNote: (id: number) => Promise<{ deleted: boolean }>;
   listClients: () => Promise<ClientRecord[]>;
+  getClientDetail: (clientId: number) => Promise<ClientDetailSnapshot>;
   createClient: (input: ClientFormInput) => Promise<ClientRecord>;
   updateClient: (input: ClientUpdateInput) => Promise<ClientRecord>;
   setClientStatus: (input: ClientStatusUpdateInput) => Promise<ClientRecord>;

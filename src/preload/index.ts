@@ -5,6 +5,9 @@ import { UPDATE_STATE_CHANNEL } from "../shared/ipc-channels";
 
 const api: DomizanApi = {
   getBootstrap: () => ipcRenderer.invoke("app:getBootstrap"),
+  getSettingsSnapshot: () => ipcRenderer.invoke("app:getSettings"),
+  setThemePreference: (theme) => ipcRenderer.invoke("app:setThemePreference", theme),
+  openPath: (targetPath) => ipcRenderer.invoke("app:openPath", targetPath),
   getDashboardPlanner: (referenceDate) => ipcRenderer.invoke("app:getDashboardPlanner", referenceDate),
   completeOnboarding: (input) => ipcRenderer.invoke("app:completeOnboarding", input),
   getUpdateState: () => ipcRenderer.invoke("updates:getState"),
@@ -35,6 +38,7 @@ const api: DomizanApi = {
   createPlannerNote: (input) => ipcRenderer.invoke("planner:notes:create", input),
   deletePlannerNote: (id) => ipcRenderer.invoke("planner:notes:delete", id),
   listClients: () => ipcRenderer.invoke("clients:list"),
+  getClientDetail: (clientId) => ipcRenderer.invoke("clients:getDetail", clientId),
   createClient: (input) => ipcRenderer.invoke("clients:create", input),
   updateClient: (input) => ipcRenderer.invoke("clients:update", input),
   setClientStatus: (input) => ipcRenderer.invoke("clients:setStatus", input),

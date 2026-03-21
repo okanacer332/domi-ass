@@ -1,17 +1,18 @@
 import { startTransition, useDeferredValue, useEffect, useState } from "react";
 import { FileUp, KeyRound, Plus, Search, ShoppingCart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import type {
   BootstrapPayload,
-  ClientImportCommitResult,
   ClientFormInput,
+  ClientImportCommitResult,
   ClientRecord
 } from "../../../../shared/contracts";
 import { StatePanel } from "../../components/ui/state-panel";
 import { useAppStore } from "../app/app-store";
-import { useClientsStore } from "./client-store";
 import { ClientFormSheet } from "./client-form-sheet";
 import { ClientImportSheet } from "./client-import-sheet";
+import { useClientsStore } from "./client-store";
 import { ClientTable } from "./client-table";
 import { getClientSearchBlob } from "./client-utils";
 
@@ -22,6 +23,7 @@ type ClientsPageProps = {
 };
 
 export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: ClientsPageProps) {
+  const navigate = useNavigate();
   const clients = useClientsStore((state) => state.clients);
   const status = useClientsStore((state) => state.status);
   const error = useClientsStore((state) => state.error);
@@ -174,6 +176,10 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
     }
   };
 
+  const handleOpenDetail = (client: ClientRecord) => {
+    navigate(`/mukellefler/${client.id}`);
+  };
+
   if (status === "loading") {
     return (
       <StatePanel
@@ -201,8 +207,8 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
           <p className="eyebrow">Mükellef Yönetimi</p>
           <h3>Mükellef listesi, klasör erişimi ve kontrollü Excel aktarımı</h3>
           <p>
-            Kimlik türü artık net biçimde ayrılır. Sistem VKN ve T.C. kimlik numaralarını farklı
-            kurallarla doğrular.
+            Liste ekranı artık detay akışına açılır. Detay sayfasında klasörler, evraklar ve genel
+            mükellef görünümü tek yerde toplanır.
           </p>
         </div>
 
@@ -232,21 +238,21 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
         <section className="readonly-notice">
           <div className="readonly-notice__copy">
             <p className="eyebrow">Lisans Gerekli</p>
-            <h4>MÃ¼kellef kayÄ±tlarÄ±nÄ± gÃ¶rebilirsin, fakat iÅŸlem yapamazsÄ±n.</h4>
+            <h4>Mükellef kayıtlarını görebilirsin, fakat işlem yapamazsın.</h4>
             <p>
-              Deneme sÃ¼resi dolduÄŸu iÃ§in yeni mÃ¼kellef ekleme, Excel iÃ§e aktarma, dÃ¼zenleme,
-              pasife Ã§ekme ve klasÃ¶r aÃ§ma geÃ§ici olarak kapatÄ±ldÄ±.
+              Deneme süresi dolduğu için yeni mükellef ekleme, Excel içe aktarma, düzenleme,
+              pasife çekme ve klasör açma geçici olarak kapatıldı.
             </p>
           </div>
 
           <div className="readonly-notice__actions">
             <button className="secondary-button" onClick={onUnlockAccess} type="button">
               <KeyRound size={16} />
-              <span>LisansÄ± etkinleÅŸtir</span>
+              <span>Lisansı etkinleştir</span>
             </button>
             <button className="primary-button" onClick={onOpenCheckout} type="button">
               <ShoppingCart size={16} />
-              <span>SatÄ±n alma sayfasÄ±nÄ± aÃ§</span>
+              <span>Satın alma sayfasını aç</span>
             </button>
           </div>
         </section>
@@ -287,7 +293,10 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
             />
           </label>
 
-          <select onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} value={statusFilter}>
+          <select
+            onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}
+            value={statusFilter}
+          >
             <option value="all">Tüm durumlar</option>
             <option value="active">Yalnızca aktif</option>
             <option value="passive">Yalnızca pasif</option>
@@ -311,6 +320,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
             clients={filteredClients}
             disabled={operationsLocked}
             onEdit={openEditSheet}
+            onOpenDetail={handleOpenDetail}
             onOpenFolder={handleOpenFolder}
             onToggleStatus={handleToggleStatus}
           />
@@ -335,7 +345,9 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
             await refreshBootstrap();
             setActionError(null);
             setActionSuccess(
-              `${result.created} yeni, ${result.updated} güncellenen, ${result.skipped} atlanan kayıt işlendi.${result.warnings.length > 0 ? ` ${result.warnings.length} uyarı oluştu.` : ""}`
+              `${result.created} yeni, ${result.updated} güncellenen, ${result.skipped} atlanan kayıt işlendi.${
+                result.warnings.length > 0 ? ` ${result.warnings.length} uyarı oluştu.` : ""
+              }`
             );
           }}
         />

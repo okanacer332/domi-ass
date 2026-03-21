@@ -7,20 +7,23 @@ import { AppTopbar } from "./components/layout/app-topbar";
 import { MascotDock } from "./components/ui/mascot-dock";
 import { StatePanel } from "./components/ui/state-panel";
 import { useAppStore } from "./features/app/app-store";
+import { ClientDetailPage } from "./features/clients/client-detail-page";
 import { ClientsPage } from "./features/clients/clients-page";
 import { DashboardPage } from "./features/dashboard/dashboard-page";
 import { InboxPage } from "./features/inbox/inbox-page";
 import { MizanPage } from "./features/mizan/mizan-page";
 import { OnboardingPage } from "./features/onboarding/onboarding-page";
 import { PlannerPage } from "./features/planner/planner-page";
-import { PlaceholderPage } from "./features/shared/placeholder-page";
+import { SettingsPage } from "./features/settings/settings-page";
 
 function App() {
   const bootstrap = useAppStore((state) => state.bootstrap);
+  const settings = useAppStore((state) => state.settings);
   const updateState = useAppStore((state) => state.updateState);
   const status = useAppStore((state) => state.status);
   const error = useAppStore((state) => state.error);
   const loadBootstrap = useAppStore((state) => state.loadBootstrap);
+  const loadSettings = useAppStore((state) => state.loadSettings);
   const loadUpdateState = useAppStore((state) => state.loadUpdateState);
   const watchUpdateState = useAppStore((state) => state.watchUpdateState);
   const checkForUpdates = useAppStore((state) => state.checkForUpdates);
@@ -31,13 +34,35 @@ function App() {
 
   useEffect(() => {
     void loadBootstrap();
+    void loadSettings();
     void loadUpdateState();
     const unsubscribe = watchUpdateState();
 
     return () => {
       unsubscribe();
     };
-  }, [loadBootstrap, loadUpdateState, watchUpdateState]);
+  }, [loadBootstrap, loadSettings, loadUpdateState, watchUpdateState]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = () => {
+      const preference = settings?.themePreference ?? "system";
+      const resolvedTheme =
+        preference === "system" ? (mediaQuery.matches ? "dark" : "light") : preference;
+
+      root.dataset.theme = resolvedTheme;
+      root.style.colorScheme = resolvedTheme;
+    };
+
+    applyTheme();
+    mediaQuery.addEventListener("change", applyTheme);
+
+    return () => {
+      mediaQuery.removeEventListener("change", applyTheme);
+    };
+  }, [settings?.themePreference]);
 
   useEffect(() => {
     if (bootstrap?.access.canUseApp) {
@@ -170,10 +195,11 @@ function App() {
                   />
                 }
               />
+              <Route path="/mukellefler/:clientId" element={<ClientDetailPage />} />
               <Route path="/mizan-kodlari" element={<MizanPage />} />
               <Route path="/gelen-kutusu" element={<InboxPage bootstrap={bootstrap} />} />
               <Route path="/hatirlatmalar" element={<Navigate to="/planlama" replace />} />
-              <Route path="/ayarlar" element={<PlaceholderPage title="Ayarlar" />} />
+              <Route path="/ayarlar" element={<SettingsPage bootstrap={bootstrap} />} />
             </Routes>
           </div>
         </div>
