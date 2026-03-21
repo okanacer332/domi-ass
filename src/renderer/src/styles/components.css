@@ -5,6 +5,16 @@
   min-height: 100vh;
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .app-shell--centered {
   grid-template-columns: 1fr;
 }
@@ -110,14 +120,22 @@
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 24px;
 }
 
-.topbar-side {
+.topbar-copy {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  gap: 8px;
+}
+
+.topbar-actions,
+.topbar-side {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 12px;
 }
 
@@ -163,10 +181,31 @@
 }
 
 .topbar h2 {
-  margin-top: 8px;
+  margin-top: 0;
   max-width: 880px;
-  font-size: 2rem;
+  font-size: 1.55rem;
   line-height: 1.1;
+}
+
+.topbar-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-soft);
+}
+
+.topbar-version strong {
+  white-space: nowrap;
+}
+
+.topbar-version__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .status-row {
@@ -522,6 +561,11 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.dashboard-stats-grid,
+.mizan-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .clients-filter-bar {
   display: flex;
   justify-content: space-between;
@@ -678,6 +722,7 @@
 }
 
 .sheet-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -709,6 +754,39 @@
   width: 44px;
   height: 44px;
   padding: 0;
+}
+
+.sheet-busy-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(246, 249, 255, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.sheet-busy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  padding: 24px 28px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-strong);
+  text-align: center;
+}
+
+.sheet-busy-card span {
+  color: var(--muted);
+}
+
+.sheet-busy-spinner {
+  animation: spin 1s linear infinite;
 }
 
 .sheet-form {
@@ -1027,6 +1105,10 @@
   border-radius: 24px;
 }
 
+.mizan-table-shell {
+  max-height: 720px;
+}
+
 .mizan-route-table {
   width: 100%;
   border-collapse: collapse;
@@ -1051,6 +1133,14 @@
 
 .mizan-route-table tbody tr:hover {
   background: rgba(242, 246, 255, 0.74);
+}
+
+.mizan-toolbar {
+  margin-bottom: 0;
+}
+
+.mizan-filter-bar {
+  margin-bottom: 16px;
 }
 
 .mascot-dock {
@@ -1377,6 +1467,7 @@
     flex-direction: column;
   }
 
+  .topbar-actions,
   .topbar-side {
     width: 100%;
     align-items: stretch;
@@ -1391,7 +1482,8 @@
   .import-preview-head,
   .onboarding-brand,
   .onboarding-device-row,
-  .update-card {
+  .update-card,
+  .topbar-version {
     flex-direction: column;
   }
 

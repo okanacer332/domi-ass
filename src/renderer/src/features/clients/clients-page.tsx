@@ -3,10 +3,12 @@ import { FileUp, KeyRound, Plus, Search, ShoppingCart } from "lucide-react";
 
 import type {
   BootstrapPayload,
+  ClientImportCommitResult,
   ClientFormInput,
   ClientRecord
 } from "../../../../shared/contracts";
 import { StatePanel } from "../../components/ui/state-panel";
+import { useAppStore } from "../app/app-store";
 import { useClientsStore } from "./client-store";
 import { ClientFormSheet } from "./client-form-sheet";
 import { ClientImportSheet } from "./client-import-sheet";
@@ -28,6 +30,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
   const updateClient = useClientsStore((state) => state.updateClient);
   const setClientStatus = useClientsStore((state) => state.setClientStatus);
   const openClientFolder = useClientsStore((state) => state.openClientFolder);
+  const refreshBootstrap = useAppStore((state) => state.refreshBootstrap);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "passive">("all");
@@ -36,6 +39,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
   const [showImport, setShowImport] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search);
   const operationsLocked =
     bootstrap.onboarding.isComplete &&
@@ -77,6 +81,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
       setSelectedClient(null);
       setFormMode("create");
       setActionError(null);
+      setActionSuccess(null);
     });
   };
 
@@ -89,6 +94,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
       setSelectedClient(client);
       setFormMode("edit");
       setActionError(null);
+      setActionSuccess(null);
     });
   };
 
@@ -101,6 +107,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
   const handleSubmit = async (input: ClientFormInput) => {
     setSubmitting(true);
     setActionError(null);
+    setActionSuccess(null);
 
     try {
       if (formMode === "edit" && selectedClient) {
@@ -112,6 +119,10 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
         await createClient(input);
       }
 
+      await refreshBootstrap();
+      setActionSuccess(
+        formMode === "edit" ? "Mükellef kaydı güncellendi." : "Mükellef kaydı oluşturuldu."
+      );
       closeFormSheet();
     } catch (submitError) {
       const message =
@@ -129,12 +140,19 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
     }
 
     setActionError(null);
+    setActionSuccess(null);
 
     try {
       await setClientStatus({
         id: client.id,
         status: client.status === "active" ? "passive" : "active"
       });
+      await refreshBootstrap();
+      setActionSuccess(
+        client.status === "active"
+          ? "Mükellef pasife çekildi."
+          : "Mükellef yeniden aktifleştirildi."
+      );
     } catch (statusError) {
       setActionError(
         statusError instanceof Error ? statusError.message : "Durum güncellenemedi."
@@ -148,6 +166,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
     }
 
     setActionError(null);
+    setActionSuccess(null);
     const result = await openClientFolder(client.id);
 
     if (!result.opened) {
@@ -276,6 +295,7 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
         </div>
 
         {actionError && <div className="inline-error">{actionError}</div>}
+        {actionSuccess && <div className="inline-success">{actionSuccess}</div>}
 
         {filteredClients.length === 0 ? (
           <div className="clients-empty-state">
@@ -310,8 +330,13 @@ export function ClientsPage({ bootstrap, onUnlockAccess, onOpenCheckout }: Clien
       {showImport && !operationsLocked && (
         <ClientImportSheet
           onClose={() => setShowImport(false)}
-          onImported={async () => {
-            await loadClients();
+          onImported={async (result: ClientImportCommitResult) => {
+            await loadClients({ silent: true });
+            await refreshBootstrap();
+            setActionError(null);
+            setActionSuccess(
+              `${result.created} yeni, ${result.updated} güncellenen, ${result.skipped} atlanan kayıt işlendi.${result.warnings.length > 0 ? ` ${result.warnings.length} uyarı oluştu.` : ""}`
+            );
           }}
         />
       )}

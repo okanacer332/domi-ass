@@ -76,6 +76,7 @@ const resolveIdentity = (identityType: ClientIdentityType | null | undefined, id
 };
 
 const mapClientRow = (row: typeof clientsTable.$inferSelect): ClientRecord => {
+  const status = row.status === "passive" ? "passive" : "active";
   const identity = resolveIdentity(
     row.identityType === "vkn" || row.identityType === "tckn" ? row.identityType : null,
     row.identityNumber ?? row.taxId ?? null
@@ -93,9 +94,9 @@ const mapClientRow = (row: typeof clientsTable.$inferSelect): ClientRecord => {
     city: row.city ?? null,
     address: row.address ?? null,
     notes: row.notes ?? null,
-    status: row.status === "passive" ? "passive" : "active",
+    status,
     folderName: row.folderName,
-    folderPath: getClientFolderPath(row.folderName),
+    folderPath: getClientFolderPath(row.folderName, status),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt
   };
@@ -199,7 +200,7 @@ export const createClient = async (input: ClientFormInput): Promise<ClientRecord
   const now = new Date().toISOString();
   const baseFolderName = buildClientFolderSlug(parsed.name, identity.normalizedValue);
   const folderName = ensureUniqueClientFolderName(baseFolderName);
-  ensureClientFolderStructure(folderName);
+  ensureClientFolderStructure(folderName, "active");
 
   const db = getDatabase();
   await db.insert(clientsTable).values({
@@ -283,7 +284,7 @@ export const openClientFolder = async (clientId: number) => {
   await requireOperationalAccess();
   const row = await getClientById(clientId);
   ensureClientFolderAssets(mapClientRow(row), true);
-  return openClientFolderPath(row.folderName);
+  return openClientFolderPath(row.folderName, row.status === "passive" ? "passive" : "active");
 };
 
 const matchImportedClient = (existingClients: ClientRecord[], input: ClientFormInput) => {

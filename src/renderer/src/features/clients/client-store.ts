@@ -12,7 +12,7 @@ type ClientsStore = {
   clients: ClientRecord[];
   status: "idle" | "loading" | "ready" | "error";
   error: string | null;
-  loadClients: () => Promise<void>;
+  loadClients: (options?: { silent?: boolean }) => Promise<void>;
   createClient: (input: ClientFormInput) => Promise<ClientRecord>;
   updateClient: (input: ClientUpdateInput) => Promise<ClientRecord>;
   setClientStatus: (input: ClientStatusUpdateInput) => Promise<ClientRecord>;
@@ -23,12 +23,14 @@ export const useClientsStore = create<ClientsStore>((set, get) => ({
   clients: [],
   status: "idle",
   error: null,
-  loadClients: async () => {
-    set({ status: "loading", error: null });
+  loadClients: async (options) => {
+    if (!options?.silent) {
+      set({ status: "loading", error: null });
+    }
 
     try {
       const clients = await window.domizanApi.listClients();
-      set({ clients, status: "ready" });
+      set({ clients, status: "ready", error: null });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Mükellefler yüklenemedi.";
       set({ status: "error", error: message });

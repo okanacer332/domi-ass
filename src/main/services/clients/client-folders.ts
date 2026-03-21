@@ -17,6 +17,7 @@ const CLIENT_SUBFOLDERS = [
 ];
 
 const CLIENT_INFO_FILE_NAME = "Bilgi.txt";
+const PASSIVE_CLIENTS_FOLDER_NAME = "_Pasif";
 
 const normalizeForFolder = (value: string) =>
   value
@@ -26,23 +27,53 @@ const normalizeForFolder = (value: string) =>
     .replace(/^-+|-+$/g, "")
     .toLowerCase();
 
+const getClientsRoot = (status: ClientRecord["status"] = "active") => {
+  const directories = ensureDomizanDirectories();
+  const basePath =
+    status === "passive"
+      ? path.join(directories.clients, PASSIVE_CLIENTS_FOLDER_NAME)
+      : directories.clients;
+
+  fs.mkdirSync(basePath, { recursive: true });
+  return basePath;
+};
+
+const moveDirectoryIfNeeded = (sourcePath: string, targetPath: string) => {
+  if (sourcePath === targetPath || !fs.existsSync(sourcePath)) {
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+
+  if (fs.existsSync(targetPath)) {
+    fs.cpSync(sourcePath, targetPath, { recursive: true, force: true });
+    fs.rmSync(sourcePath, { recursive: true, force: true });
+    return;
+  }
+
+  fs.renameSync(sourcePath, targetPath);
+};
+
 export const buildClientFolderSlug = (name: string, identityNumber?: string | null) => {
   const base = normalizeForFolder(name).slice(0, 60) || "mukellef";
   const suffix = identityNumber?.trim() ? `-${identityNumber.trim()}` : "";
   return `${base}${suffix}`;
 };
 
-export const getClientFolderPath = (folderName: string) => {
-  const directories = ensureDomizanDirectories();
-  return path.join(directories.clients, folderName);
-};
+export const getClientFolderPath = (
+  folderName: string,
+  status: ClientRecord["status"] = "active"
+) => path.join(getClientsRoot(status), folderName);
 
 export const ensureUniqueClientFolderName = (baseFolderName: string, currentFolderName?: string) => {
-  const directories = ensureDomizanDirectories();
   let candidate = baseFolderName;
   let counter = 2;
 
-  while (candidate !== currentFolderName && fs.existsSync(path.join(directories.clients, candidate))) {
+  while (
+    candidate !== currentFolderName &&
+    (fs.existsSync(getClientFolderPath(candidate, "active")) ||
+      fs.existsSync(getClientFolderPath(candidate, "passive")))
+  ) {
     candidate = `${baseFolderName}-${counter}`;
     counter += 1;
   }
@@ -50,9 +81,25 @@ export const ensureUniqueClientFolderName = (baseFolderName: string, currentFold
   return candidate;
 };
 
-export const ensureClientFolderStructure = (folderName: string) => {
-  const clientFolderPath = getClientFolderPath(folderName);
-  fs.mkdirSync(clientFolderPath, { recursive: true });
+export const ensureClientFolderLocation = (
+  folderName: string,
+  status: ClientRecord["status"] = "active"
+) => {
+  const targetPath = getClientFolderPath(folderName, status);
+  const oppositeStatus = status === "active" ? "passive" : "active";
+  const oppositePath = getClientFolderPath(folderName, oppositeStatus);
+
+  moveDirectoryIfNeeded(oppositePath, targetPath);
+  fs.mkdirSync(targetPath, { recursive: true });
+
+  return targetPath;
+};
+
+export const ensureClientFolderStructure = (
+  folderName: string,
+  status: ClientRecord["status"] = "active"
+) => {
+  const clientFolderPath = ensureClientFolderLocation(folderName, status);
 
   CLIENT_SUBFOLDERS.forEach((subfolder) => {
     fs.mkdirSync(path.join(clientFolderPath, subfolder), { recursive: true });
@@ -109,7 +156,7 @@ export const syncClientInfoFile = (
     onlyIfMissing?: boolean;
   }
 ) => {
-  const clientFolderPath = ensureClientFolderStructure(client.folderName);
+  const clientFolderPath = ensureClientFolderStructure(client.folderName, client.status);
   const infoFilePath = path.join(clientFolderPath, CLIENT_INFO_FILE_NAME);
 
   if (options?.onlyIfMissing && fs.existsSync(infoFilePath)) {
@@ -120,8 +167,11 @@ export const syncClientInfoFile = (
   return infoFilePath;
 };
 
-export const openClientFolderPath = async (folderName: string) => {
-  const folderPath = ensureClientFolderStructure(folderName);
+export const openClientFolderPath = async (
+  folderName: string,
+  status: ClientRecord["status"] = "active"
+) => {
+  const folderPath = ensureClientFolderStructure(folderName, status);
   const result = await shell.openPath(folderPath);
 
   return {

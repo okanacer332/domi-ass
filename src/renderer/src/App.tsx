@@ -101,13 +101,9 @@ function App() {
       <main className="content">
         <AppTopbar
           accessMode={bootstrap.access.mode}
-          geminiReady={bootstrap.summary.geminiReady}
-          lemonMode={bootstrap.summary.lemonMode}
-          lemonReady={bootstrap.summary.lemonReady}
           officeName={bootstrap.workspace?.officeName ?? "Domizan"}
           onCheckUpdates={() => void checkForUpdates()}
           onInstallUpdate={() => void installUpdate()}
-          telegramReady={bootstrap.summary.telegramReady}
           trialDaysLeft={bootstrap.access.trial.daysLeft}
           updateState={updateState}
         />

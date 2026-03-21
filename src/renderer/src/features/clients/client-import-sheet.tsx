@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Download, FileSpreadsheet, ShieldAlert, X } from "lucide-react";
+import {
+  Download,
+  FileSpreadsheet,
+  LoaderCircle,
+  ShieldAlert,
+  X
+} from "lucide-react";
 
 import {
   DOMIZAN_CLIENT_IMPORT_TEMPLATE_COLUMNS,
@@ -11,6 +17,7 @@ import {
 } from "../../../../shared/client-identity";
 import type {
   ClientImportCommitInput,
+  ClientImportCommitResult,
   ClientImportField,
   ClientImportPreview
 } from "../../../../shared/contracts";
@@ -18,8 +25,13 @@ import { clientImportFieldLabels } from "./client-utils";
 
 type ClientImportSheetProps = {
   onClose: () => void;
-  onImported: () => Promise<void>;
+  onImported: (result: ClientImportCommitResult) => Promise<void>;
 };
+
+const waitForNextPaint = () =>
+  new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => resolve());
+  });
 
 const validateMappedRow = (mapped: Partial<Record<ClientImportField, string>>) => {
   const warnings: string[] = [];
@@ -51,12 +63,19 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
 
+  const busyMessage = committing
+    ? "Mükellefler içeri alınıyor"
+    : loading
+      ? "Dosya hazırlanıyor"
+      : null;
+
   const prepareTemplate = async () => {
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
+      await waitForNextPaint();
       const response = await window.domizanApi.prepareClientImportTemplate();
       setResult(
         response.error
@@ -80,6 +99,7 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
     setResult(null);
 
     try {
+      await waitForNextPaint();
       const picked = await window.domizanApi.pickClientImportFile();
       if (!picked) {
         return;
@@ -112,15 +132,14 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
     setResult(null);
 
     try {
+      await waitForNextPaint();
       const response = await window.domizanApi.commitClientImport(payload);
-      setResult(
-        `${response.created} yeni, ${response.updated} güncellenen, ${response.skipped} atlanan kayıt işlendi.`
-      );
-      await onImported();
+      await onImported(response);
+      setCommitting(false);
+      onClose();
+      return;
     } catch (commitError) {
-      setError(
-        commitError instanceof Error ? commitError.message : "İçe aktarma tamamlanamadı."
-      );
+      setError(commitError instanceof Error ? commitError.message : "İçe aktarma tamamlanamadı.");
     } finally {
       setCommitting(false);
     }
@@ -149,13 +168,28 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
   return (
     <div className="sheet-overlay" role="presentation">
       <section className="sheet-panel sheet-panel--wide">
+        {busyMessage && (
+          <div className="sheet-busy-overlay" role="status" aria-live="polite">
+            <div className="sheet-busy-card">
+              <LoaderCircle className="sheet-busy-spinner" size={28} />
+              <strong>{busyMessage}</strong>
+              <span>Lütfen bekleyin. İşlem bitince pencere kapanacak.</span>
+            </div>
+          </div>
+        )}
+
         <header className="sheet-header">
           <div>
             <p className="eyebrow">Excel içe aktar</p>
-            <h3>Mükellef listesi içe aktarma sihirbazı</h3>
+            <h3>Mükellef listesi içe aktarma</h3>
           </div>
 
-          <button className="sheet-close-button" onClick={onClose} type="button">
+          <button
+            className="sheet-close-button"
+            disabled={loading || committing}
+            onClick={onClose}
+            type="button"
+          >
             <X size={18} />
           </button>
         </header>
@@ -164,15 +198,15 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
           <div>
             <strong>Domizan şablonu ile başla</strong>
             <p>
-              En sorunsuz akış, bizim hazırladığımız mükellef şablonunu doldurup içe almaktır.
-              Farklı dosyaları yine deneyebilirsin ama ana standart Domizan formatıdır.
+              En temiz akış Domizan şablonunu doldurup içeri almaktır. Standart düzen bu
+              olacaktır.
             </p>
           </div>
 
           <div className="import-intro-actions">
             <button
               className="secondary-button"
-              disabled={loading}
+              disabled={loading || committing}
               onClick={() => void prepareTemplate()}
               type="button"
             >
@@ -180,7 +214,12 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
               <span>{loading ? "Hazırlanıyor..." : "Şablonu oluştur ve aç"}</span>
             </button>
 
-            <button className="primary-button" disabled={loading} onClick={() => void pickFile()} type="button">
+            <button
+              className="primary-button"
+              disabled={loading || committing}
+              onClick={() => void pickFile()}
+              type="button"
+            >
               <FileSpreadsheet size={16} />
               <span>{loading ? "Dosya okunuyor..." : "Excel dosyası seç"}</span>
             </button>
@@ -190,8 +229,8 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
         {!preview && (
           <div className="empty-import-state">
             <p className="eyebrow">Adım 1</p>
-            <h4>Önce Domizan şablonunu doldur</h4>
-            <p>Bir kere bu düzene geçtiğinde mükellef içe aktarma tarafı çok daha sakin ilerler.</p>
+            <h4>Önce şablonu indir</h4>
+            <p>Bir kere bu düzene geçtiğinde içe aktarma tarafı sorunsuz ilerler.</p>
 
             <div className="template-guidance-grid">
               <article className="template-guidance-card">
@@ -280,7 +319,7 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
                   <h4>Ön izleme</h4>
                 </div>
                 <p className="import-help-text">
-                  Kimlik numarası kolonunda geçersiz kayıt varsa sistem bu satırları içe almaz.
+                  Geçersiz kimlik numarası olan satırlar içe alınmaz.
                 </p>
               </div>
 
@@ -326,12 +365,17 @@ export function ClientImportSheet({ onClose, onImported }: ClientImportSheetProp
         {result && <div className="inline-success">{result}</div>}
 
         <div className="sheet-actions">
-          <button className="secondary-button" onClick={onClose} type="button">
+          <button
+            className="secondary-button"
+            disabled={loading || committing}
+            onClick={onClose}
+            type="button"
+          >
             Kapat
           </button>
           <button
             className="primary-button"
-            disabled={!preview || !mapping.name || committing}
+            disabled={!preview || !mapping.name || committing || loading}
             onClick={() => void commitImport()}
             type="button"
           >
