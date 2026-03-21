@@ -12,6 +12,7 @@ import { DashboardPage } from "./features/dashboard/dashboard-page";
 import { InboxPage } from "./features/inbox/inbox-page";
 import { MizanPage } from "./features/mizan/mizan-page";
 import { OnboardingPage } from "./features/onboarding/onboarding-page";
+import { PlannerPage } from "./features/planner/planner-page";
 import { PlaceholderPage } from "./features/shared/placeholder-page";
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
   const installUpdate = useAppStore((state) => state.installUpdate);
   const openCheckout = useAppStore((state) => state.openCheckout);
   const [showAccessCenter, setShowAccessCenter] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     void loadBootstrap();
@@ -48,9 +50,9 @@ function App() {
       <div className="app-shell app-shell--centered">
         <main className="content content--single">
           <StatePanel
-            eyebrow="Yükleniyor"
-            title="Domizan masaüstü hazırlanıyor"
-            description="Yerel klasörler, veritabanı ve güvenli kurulum denetimleri çalıştırılıyor."
+            eyebrow="Yukleniyor"
+            title="Domizan masaustu hazirlaniyor"
+            description="Yerel klasorler, veritabani ve guvenli kurulum denetimleri calistiriliyor."
           />
         </main>
         <MascotDock />
@@ -64,7 +66,7 @@ function App() {
         <main className="content content--single">
           <StatePanel
             eyebrow="Hata"
-            title="Başlangıç verisi alınamadı"
+            title="Baslangic verisi alinamadi"
             description={error ?? "Beklenmeyen hata"}
           />
         </main>
@@ -96,79 +98,85 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <AppSidebar />
+    <div className={`app-shell ${sidebarCollapsed ? "app-shell--sidebar-collapsed" : ""}`}>
+      <AppSidebar collapsed={sidebarCollapsed} />
 
       <main className="content">
         <AppTopbar
           accessMode={bootstrap.access.mode}
+          isSidebarCollapsed={sidebarCollapsed}
           officeName={bootstrap.workspace?.officeName ?? "Domizan"}
           onCheckUpdates={() => void checkForUpdates()}
           onInstallUpdate={() => void installUpdate()}
+          onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
           trialDaysLeft={bootstrap.access.trial.daysLeft}
           updateState={updateState}
         />
+        <div className="route-viewport">
+          {isPurchaseLocked && (
+            <section className="access-lock-banner">
+              <div className="access-lock-banner__copy">
+                <p className="eyebrow">Goruntuleme Modu</p>
+                <h3>Deneme suresi doldu. Tum veriler gorunur, islemler kilitli.</h3>
+                <p>
+                  {bootstrap.access.reason ??
+                    "Kayitlari inceleyebilirsin ancak yeni musteri ekleme, import, duzenleme ve klasor islemleri lisans etkinlesene kadar durduruldu."}
+                </p>
+              </div>
 
-        {isPurchaseLocked && (
-          <section className="access-lock-banner">
-            <div className="access-lock-banner__copy">
-              <p className="eyebrow">Goruntuleme Modu</p>
-              <h3>Deneme suresi doldu. Tum veriler gorunur, islemler kilitli.</h3>
-              <p>
-                {bootstrap.access.reason ??
-                  "Kayitlari inceleyebilirsin ancak yeni musteri ekleme, import, duzenleme ve klasor islemleri lisans etkinlesene kadar durduruldu."}
-              </p>
-            </div>
+              <div className="access-lock-banner__actions">
+                <button
+                  className="secondary-button"
+                  onClick={() => setShowAccessCenter(true)}
+                  type="button"
+                >
+                  <KeyRound size={16} />
+                  <span>Lisansi etkinlestir</span>
+                </button>
+                <button
+                  className="primary-button"
+                  onClick={() =>
+                    void openCheckout({
+                      email: bootstrap.workspace?.ownerEmail ?? undefined,
+                      name: bootstrap.workspace?.ownerName ?? undefined
+                    })
+                  }
+                  type="button"
+                >
+                  <ShoppingCart size={16} />
+                  <span>Satin alma sayfasini ac</span>
+                </button>
+              </div>
+            </section>
+          )}
 
-            <div className="access-lock-banner__actions">
-              <button
-                className="secondary-button"
-                onClick={() => setShowAccessCenter(true)}
-                type="button"
-              >
-                <KeyRound size={16} />
-                <span>Lisansi etkinlestir</span>
-              </button>
-              <button
-                className="primary-button"
-                onClick={() =>
-                  void openCheckout({
-                    email: bootstrap.workspace?.ownerEmail ?? undefined,
-                    name: bootstrap.workspace?.ownerName ?? undefined
-                  })
+          <div className="route-viewport__body">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage bootstrap={bootstrap} />} />
+              <Route path="/planlama" element={<PlannerPage />} />
+              <Route
+                path="/mukellefler"
+                element={
+                  <ClientsPage
+                    bootstrap={bootstrap}
+                    onOpenCheckout={() =>
+                      void openCheckout({
+                        email: bootstrap.workspace?.ownerEmail ?? undefined,
+                        name: bootstrap.workspace?.ownerName ?? undefined
+                      })
+                    }
+                    onUnlockAccess={() => setShowAccessCenter(true)}
+                  />
                 }
-                type="button"
-              >
-                <ShoppingCart size={16} />
-                <span>Satın alma sayfasini ac</span>
-              </button>
-            </div>
-          </section>
-        )}
-
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DashboardPage bootstrap={bootstrap} />} />
-          <Route
-            path="/mukellefler"
-            element={
-              <ClientsPage
-                bootstrap={bootstrap}
-                onOpenCheckout={() =>
-                  void openCheckout({
-                    email: bootstrap.workspace?.ownerEmail ?? undefined,
-                    name: bootstrap.workspace?.ownerName ?? undefined
-                  })
-                }
-                onUnlockAccess={() => setShowAccessCenter(true)}
               />
-            }
-          />
-          <Route path="/mizan-kodlari" element={<MizanPage />} />
-          <Route path="/gelen-kutusu" element={<InboxPage bootstrap={bootstrap} />} />
-          <Route path="/hatirlatmalar" element={<PlaceholderPage title="Hatırlatmalar" />} />
-          <Route path="/ayarlar" element={<PlaceholderPage title="Ayarlar" />} />
-        </Routes>
+              <Route path="/mizan-kodlari" element={<MizanPage />} />
+              <Route path="/gelen-kutusu" element={<InboxPage bootstrap={bootstrap} />} />
+              <Route path="/hatirlatmalar" element={<Navigate to="/planlama" replace />} />
+              <Route path="/ayarlar" element={<PlaceholderPage title="Ayarlar" />} />
+            </Routes>
+          </div>
+        </div>
       </main>
 
       <MascotDock />

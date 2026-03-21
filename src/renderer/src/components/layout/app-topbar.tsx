@@ -1,4 +1,4 @@
-import { Download, RefreshCw } from "lucide-react";
+import { Download, PanelLeftClose, PanelLeftOpen, RefreshCw } from "lucide-react";
 
 import type { AccessMode, AppUpdateState } from "../../../../shared/contracts";
 import { StatusPill } from "../ui/status-pill";
@@ -6,10 +6,12 @@ import { StatusPill } from "../ui/status-pill";
 type AppTopbarProps = {
   officeName: string;
   accessMode: AccessMode;
+  isSidebarCollapsed: boolean;
   trialDaysLeft: number;
   updateState: AppUpdateState | null;
   onCheckUpdates: () => void;
   onInstallUpdate: () => void;
+  onToggleSidebar: () => void;
 };
 
 const getAccessLabel = (accessMode: AccessMode, trialDaysLeft: number) => {
@@ -45,10 +47,12 @@ const getVersionLabel = (updateState: AppUpdateState | null) => {
 export function AppTopbar({
   officeName,
   accessMode,
+  isSidebarCollapsed,
   trialDaysLeft,
   updateState,
   onCheckUpdates,
-  onInstallUpdate
+  onInstallUpdate,
+  onToggleSidebar
 }: AppTopbarProps) {
   const isChecking = updateState?.status === "checking";
   const isDownloading = updateState?.status === "available" || updateState?.status === "downloading";
@@ -58,6 +62,9 @@ export function AppTopbar({
   return (
     <header className="topbar topbar--compact">
       <div className="topbar-copy">
+        <button className="topbar-sidebar-toggle" onClick={onToggleSidebar} type="button">
+          {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        </button>
         <p className="eyebrow">{officeName}</p>
         <h2>Kontrol paneli</h2>
       </div>

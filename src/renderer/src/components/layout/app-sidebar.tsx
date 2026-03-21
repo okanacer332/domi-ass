@@ -3,9 +3,13 @@ import { NavLink } from "react-router-dom";
 import { appNavigation } from "../../app/navigation";
 import { domizanLogoUrl } from "../../lib/assets";
 
-export function AppSidebar() {
+type AppSidebarProps = {
+  collapsed: boolean;
+};
+
+export function AppSidebar({ collapsed }: AppSidebarProps) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`}>
       <div className="brand-card">
         <img alt="Domizan logosu" className="brand-logo" src={domizanLogoUrl} />
       </div>
@@ -18,12 +22,13 @@ export function AppSidebar() {
             <NavLink
               key={item.to}
               className={({ isActive }) => `nav-item ${isActive ? "is-active" : ""}`}
+              title={item.label}
               to={item.to}
             >
               <span className="nav-item__icon">
                 <Icon size={18} />
               </span>
-              <span>{item.label}</span>
+              <span className="nav-item__label">{item.label}</span>
             </NavLink>
           );
         })}

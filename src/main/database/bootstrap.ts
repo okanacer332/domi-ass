@@ -122,6 +122,30 @@ export const bootstrapDatabase = () => {
       due_date TEXT,
       status TEXT NOT NULL DEFAULT 'pending',
       channel TEXT NOT NULL DEFAULT 'desktop',
+      color TEXT NOT NULL DEFAULT 'indigo',
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS planner_notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      color TEXT NOT NULL DEFAULT 'indigo',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS planner_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      date TEXT NOT NULL,
+      category TEXT NOT NULL,
+      severity TEXT NOT NULL DEFAULT 'medium',
+      source TEXT NOT NULL DEFAULT 'manual',
+      description TEXT,
+      seed_key TEXT UNIQUE,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -231,6 +255,8 @@ export const bootstrapDatabase = () => {
   ensureColumn("documents", "analysis_provider", "analysis_provider TEXT");
   ensureColumn("documents", "analysis_error", "analysis_error TEXT");
   ensureColumn("documents", "last_analyzed_at", "last_analyzed_at TEXT");
+  ensureColumn("reminders", "color", "color TEXT NOT NULL DEFAULT 'indigo'");
+  ensureColumn("reminders", "notes", "notes TEXT");
 
   migrateLegacyClientIdentityData();
 

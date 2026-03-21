@@ -5,6 +5,7 @@ import { UPDATE_STATE_CHANNEL } from "../shared/ipc-channels";
 
 const api: DomizanApi = {
   getBootstrap: () => ipcRenderer.invoke("app:getBootstrap"),
+  getDashboardPlanner: (referenceDate) => ipcRenderer.invoke("app:getDashboardPlanner", referenceDate),
   completeOnboarding: (input) => ipcRenderer.invoke("app:completeOnboarding", input),
   getUpdateState: () => ipcRenderer.invoke("updates:getState"),
   checkForUpdates: () => ipcRenderer.invoke("updates:check"),
@@ -25,6 +26,14 @@ const api: DomizanApi = {
   getStoredLicense: () => ipcRenderer.invoke("licensing:getStoredLicense"),
   activateLicense: (input) => ipcRenderer.invoke("licensing:activateLicense", input),
   validateStoredLicense: () => ipcRenderer.invoke("licensing:validateStoredLicense"),
+  updatePlannerEvent: (input) => ipcRenderer.invoke("planner:events:update", input),
+  deletePlannerEvent: (id) => ipcRenderer.invoke("planner:events:delete", id),
+  createPlannerReminder: (input) => ipcRenderer.invoke("planner:reminders:create", input),
+  updatePlannerReminder: (input) => ipcRenderer.invoke("planner:reminders:update", input),
+  setPlannerReminderStatus: (input) => ipcRenderer.invoke("planner:reminders:setStatus", input),
+  deletePlannerReminder: (id) => ipcRenderer.invoke("planner:reminders:delete", id),
+  createPlannerNote: (input) => ipcRenderer.invoke("planner:notes:create", input),
+  deletePlannerNote: (id) => ipcRenderer.invoke("planner:notes:delete", id),
   listClients: () => ipcRenderer.invoke("clients:list"),
   createClient: (input) => ipcRenderer.invoke("clients:create", input),
   updateClient: (input) => ipcRenderer.invoke("clients:update", input),

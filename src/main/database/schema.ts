@@ -75,6 +75,30 @@ export const remindersTable = sqliteTable("reminders", {
   dueDate: text("due_date"),
   status: text("status").notNull().default("pending"),
   channel: text("channel").notNull().default("desktop"),
+  color: text("color").notNull().default("indigo"),
+  notes: text("notes"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const plannerNotesTable = sqliteTable("planner_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  color: text("color").notNull().default("indigo"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const plannerEventsTable = sqliteTable("planner_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  date: text("date").notNull(),
+  category: text("category").notNull(),
+  severity: text("severity").notNull().default("medium"),
+  source: text("source").notNull().default("manual"),
+  description: text("description"),
+  seedKey: text("seed_key").unique(),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull()
 });

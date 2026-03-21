@@ -26,6 +26,17 @@ import {
   listMizanCodes
 } from "./services/mizan/mizan-service";
 import {
+  createPlannerNote,
+  createPlannerReminder,
+  deletePlannerNote,
+  deletePlannerEvent,
+  deletePlannerReminder,
+  getDashboardPlanner,
+  updatePlannerEvent,
+  updatePlannerReminder,
+  setPlannerReminderStatus
+} from "./services/planner/planner-service";
+import {
   getInboxMonitor,
   deleteInboxDocument,
   listInboxDocuments,
@@ -44,6 +55,9 @@ import {
 
 export const registerIpcHandlers = () => {
   ipcMain.handle("app:getBootstrap", async () => getBootstrapPayload());
+  ipcMain.handle("app:getDashboardPlanner", async (_, referenceDate?: string) =>
+    getDashboardPlanner(referenceDate)
+  );
   ipcMain.handle("app:completeOnboarding", async (_, input) => completeOnboarding(input));
   ipcMain.handle("updates:getState", async () => getUpdateState());
   ipcMain.handle("updates:check", async () => checkForUpdates());
@@ -54,6 +68,14 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("licensing:getStoredLicense", async () => getStoredLicenseState());
   ipcMain.handle("licensing:activateLicense", async (_, input) => activateLicense(input));
   ipcMain.handle("licensing:validateStoredLicense", async () => validateStoredLicense());
+  ipcMain.handle("planner:reminders:create", async (_, input) => createPlannerReminder(input));
+  ipcMain.handle("planner:reminders:update", async (_, input) => updatePlannerReminder(input));
+  ipcMain.handle("planner:reminders:setStatus", async (_, input) => setPlannerReminderStatus(input));
+  ipcMain.handle("planner:reminders:delete", async (_, id: number) => deletePlannerReminder(id));
+  ipcMain.handle("planner:events:update", async (_, input) => updatePlannerEvent(input));
+  ipcMain.handle("planner:events:delete", async (_, id: number) => deletePlannerEvent(id));
+  ipcMain.handle("planner:notes:create", async (_, input) => createPlannerNote(input));
+  ipcMain.handle("planner:notes:delete", async (_, id: number) => deletePlannerNote(id));
 
   ipcMain.handle("clients:list", async () => listClients());
   ipcMain.handle("clients:create", async (_, input) => createClient(input));

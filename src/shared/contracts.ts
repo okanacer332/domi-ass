@@ -26,6 +26,8 @@ export type ClientIdentityType = "vkn" | "tckn";
 export type TrialStatus = "not_started" | "active" | "expired" | "converted";
 export type AccessMode = "trial" | "licensed" | "blocked";
 export type DocumentStatus = "waiting" | "reviewed" | "routed" | "error";
+export type ReminderStatus = "pending" | "done";
+export type PlannerReminderColor = "indigo" | "amber" | "mint" | "rose";
 export type InboxAnalysisStatus =
   | "queued"
   | "analyzing"
@@ -76,6 +78,123 @@ export type DashboardSummary = {
   geminiReady: boolean;
   lemonReady: boolean;
   lemonMode: LemonMode;
+};
+
+export type PlannerReminderRecord = {
+  id: number;
+  clientId: number | null;
+  clientName: string | null;
+  title: string;
+  dueDate: string | null;
+  status: ReminderStatus;
+  channel: string;
+  color: PlannerReminderColor;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PlannerReminderCreateInput = {
+  title: string;
+  dueDate: string | null;
+  clientId?: number | null;
+  color: PlannerReminderColor;
+  notes?: string | null;
+};
+
+export type PlannerReminderUpdateInput = {
+  id: number;
+  title: string;
+  dueDate: string | null;
+  clientId?: number | null;
+  color: PlannerReminderColor;
+  notes?: string | null;
+};
+
+export type PlannerReminderStatusInput = {
+  id: number;
+  status: ReminderStatus;
+};
+
+export type PlannerNoteColor = "indigo" | "amber" | "mint" | "slate";
+
+export type PlannerNoteRecord = {
+  id: number;
+  title: string;
+  content: string;
+  color: PlannerNoteColor;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PlannerNoteCreateInput = {
+  title: string;
+  content: string;
+  color: PlannerNoteColor;
+};
+
+export type PlannerEventSource = "system" | "manual" | "reminder";
+export type PlannerEventCategory = "beyanname" | "odeme" | "hatirlatma";
+export type PlannerEventSeverity = "high" | "medium" | "low";
+
+export type PlannerEventRecord = {
+  id: number;
+  title: string;
+  date: string;
+  category: PlannerEventCategory;
+  severity: PlannerEventSeverity;
+  source: Exclude<PlannerEventSource, "reminder">;
+  description: string | null;
+  seedKey: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PlannerEventUpdateInput = {
+  id: number;
+  title: string;
+  date: string;
+  category: PlannerEventCategory;
+  severity: PlannerEventSeverity;
+  description?: string | null;
+};
+
+export type PlannerCalendarEvent = {
+  id: string;
+  recordId: number | null;
+  title: string;
+  date: string;
+  category: PlannerEventCategory;
+  severity: PlannerEventSeverity;
+  source: PlannerEventSource;
+  description: string | null;
+  color?: PlannerReminderColor | null;
+  reminderStatus?: ReminderStatus | null;
+  clientId?: number | null;
+  clientName?: string | null;
+};
+
+export type PlannerCalendarDay = {
+  date: string;
+  dayNumber: number;
+  inCurrentMonth: boolean;
+  isToday: boolean;
+  items: PlannerCalendarEvent[];
+};
+
+export type DashboardPlannerPayload = {
+  referenceDate: string;
+  monthLabel: string;
+  focusPhaseLabel: string;
+  focusPhaseText: string;
+  nextDeadline: PlannerCalendarEvent | null;
+  overdueReminderCount: number;
+  todayItemCount: number;
+  calendarDays: PlannerCalendarDay[];
+  allEvents: PlannerCalendarEvent[];
+  upcomingEvents: PlannerCalendarEvent[];
+  reminders: PlannerReminderRecord[];
+  notes: PlannerNoteRecord[];
 };
 
 export type AppUpdateState = {
@@ -383,6 +502,7 @@ export type MizanCodeDeleteResult = {
 
 export type DomizanApi = {
   getBootstrap: () => Promise<BootstrapPayload>;
+  getDashboardPlanner: (referenceDate?: string) => Promise<DashboardPlannerPayload>;
   completeOnboarding: (input: OnboardingSetupInput) => Promise<WorkspaceProfile>;
   getUpdateState: () => Promise<AppUpdateState>;
   checkForUpdates: () => Promise<AppUpdateState>;
@@ -393,6 +513,14 @@ export type DomizanApi = {
   getStoredLicense: () => Promise<StoredLicenseState | null>;
   activateLicense: (input: LicenseActivationInput) => Promise<LicenseActivationResult>;
   validateStoredLicense: () => Promise<LicenseValidationResult | null>;
+  updatePlannerEvent: (input: PlannerEventUpdateInput) => Promise<PlannerEventRecord>;
+  deletePlannerEvent: (id: number) => Promise<{ deleted: boolean }>;
+  createPlannerReminder: (input: PlannerReminderCreateInput) => Promise<PlannerReminderRecord>;
+  updatePlannerReminder: (input: PlannerReminderUpdateInput) => Promise<PlannerReminderRecord>;
+  setPlannerReminderStatus: (input: PlannerReminderStatusInput) => Promise<PlannerReminderRecord>;
+  deletePlannerReminder: (id: number) => Promise<{ deleted: boolean }>;
+  createPlannerNote: (input: PlannerNoteCreateInput) => Promise<PlannerNoteRecord>;
+  deletePlannerNote: (id: number) => Promise<{ deleted: boolean }>;
   listClients: () => Promise<ClientRecord[]>;
   createClient: (input: ClientFormInput) => Promise<ClientRecord>;
   updateClient: (input: ClientUpdateInput) => Promise<ClientRecord>;
