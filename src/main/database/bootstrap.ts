@@ -93,6 +93,24 @@ export const bootstrapDatabase = () => {
       stored_path TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'waiting',
       detected_type TEXT,
+      mime_type TEXT,
+      file_extension TEXT,
+      file_size INTEGER,
+      document_fingerprint TEXT,
+      source_modified_at TEXT,
+      analysis_status TEXT NOT NULL DEFAULT 'queued',
+      analysis_summary TEXT,
+      analysis_details TEXT,
+      extracted_text_preview TEXT,
+      matched_client_name TEXT,
+      matched_client_confidence INTEGER,
+      matched_by TEXT,
+      suggested_folder TEXT,
+      routed_folder TEXT,
+      analysis_context TEXT,
+      analysis_provider TEXT,
+      analysis_error TEXT,
+      last_analyzed_at TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -115,6 +133,17 @@ export const bootstrapDatabase = () => {
       base_code TEXT NOT NULL,
       parent_code TEXT NOT NULL,
       level INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS inbox_learning_rules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      signal_type TEXT NOT NULL,
+      signal_value TEXT NOT NULL,
+      client_id INTEGER NOT NULL,
+      target_folder TEXT,
+      hit_count INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -184,6 +213,24 @@ export const bootstrapDatabase = () => {
   ensureColumn("clients", "city", "city TEXT");
   ensureColumn("clients", "address", "address TEXT");
   ensureColumn("clients", "notes", "notes TEXT");
+  ensureColumn("documents", "mime_type", "mime_type TEXT");
+  ensureColumn("documents", "file_extension", "file_extension TEXT");
+  ensureColumn("documents", "file_size", "file_size INTEGER");
+  ensureColumn("documents", "document_fingerprint", "document_fingerprint TEXT");
+  ensureColumn("documents", "source_modified_at", "source_modified_at TEXT");
+  ensureColumn("documents", "analysis_status", "analysis_status TEXT NOT NULL DEFAULT 'queued'");
+  ensureColumn("documents", "analysis_summary", "analysis_summary TEXT");
+  ensureColumn("documents", "analysis_details", "analysis_details TEXT");
+  ensureColumn("documents", "extracted_text_preview", "extracted_text_preview TEXT");
+  ensureColumn("documents", "matched_client_name", "matched_client_name TEXT");
+  ensureColumn("documents", "matched_client_confidence", "matched_client_confidence INTEGER");
+  ensureColumn("documents", "matched_by", "matched_by TEXT");
+  ensureColumn("documents", "suggested_folder", "suggested_folder TEXT");
+  ensureColumn("documents", "routed_folder", "routed_folder TEXT");
+  ensureColumn("documents", "analysis_context", "analysis_context TEXT");
+  ensureColumn("documents", "analysis_provider", "analysis_provider TEXT");
+  ensureColumn("documents", "analysis_error", "analysis_error TEXT");
+  ensureColumn("documents", "last_analyzed_at", "last_analyzed_at TEXT");
 
   migrateLegacyClientIdentityData();
 

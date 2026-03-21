@@ -49,6 +49,8 @@ const defaultDatabasePath = databaseCandidates[0];
 const sharedSecurityDirectory = getSharedSecurityDirectory();
 const sharedAccessFilePath = path.join(sharedSecurityDirectory, "installation-access.json");
 const sharedBindingFilePath = path.join(sharedSecurityDirectory, "machine-binding.json");
+const desktopDomizanRoot = path.join(os.homedir(), "Desktop", "Domizan");
+const inboxDirectoryPath = path.join(desktopDomizanRoot, "GelenKutusu");
 
 const resolveExistingPath = (candidates) => candidates.find((candidate) => fs.existsSync(candidate)) || null;
 
@@ -315,6 +317,29 @@ const resetTrial = async () => {
   console.log(`- Shared access: ${touchedSharedAccess ? "guncellendi" : "bulunamadi"}`);
 };
 
+const clearInbox = async () => {
+  const { databasePath, sqlite } = await loadDatabase();
+
+  if (sqlite && tableExists(sqlite, "documents")) {
+    sqlite.run("DELETE FROM documents WHERE source = ?", ["team_inbox"]);
+    persistDatabase(databasePath, sqlite);
+    sqlite.close();
+  }
+
+  if (fs.existsSync(inboxDirectoryPath)) {
+    for (const entry of fs.readdirSync(inboxDirectoryPath, { withFileTypes: true })) {
+      const entryPath = path.join(inboxDirectoryPath, entry.name);
+      fs.rmSync(entryPath, { recursive: true, force: true });
+    }
+  } else {
+    fs.mkdirSync(inboxDirectoryPath, { recursive: true });
+  }
+
+  console.log("Gelen kutusu temizlendi.");
+  console.log(`- Database: ${sqlite ? "guncellendi" : "bulunamadi"}`);
+  console.log(`- Klasor: ${inboxDirectoryPath}`);
+};
+
 const restoreLicense = async (licenseKey) => {
   if (!licenseKey) {
     throw new Error("restore-license komutu icin lisans anahtari gereklidir.");
@@ -375,12 +400,17 @@ const main = async () => {
     case "reset-trial":
       await resetTrial();
       break;
+    case "clear-inbox":
+      await clearInbox();
+      break;
     case "restore-license":
       await restoreLicense(actionArg);
       break;
     default:
       console.error(`Bilinmeyen komut: ${action}`);
-      console.error("Kullanilabilir komutlar: status, clear-license, expire-trial, reset-trial, restore-license");
+      console.error(
+        "Kullanilabilir komutlar: status, clear-license, expire-trial, reset-trial, clear-inbox, restore-license"
+      );
       process.exitCode = 1;
   }
 };

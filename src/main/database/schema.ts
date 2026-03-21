@@ -35,6 +35,35 @@ export const documentsTable = sqliteTable("documents", {
   storedPath: text("stored_path").notNull(),
   status: text("status").notNull().default("waiting"),
   detectedType: text("detected_type"),
+  mimeType: text("mime_type"),
+  fileExtension: text("file_extension"),
+  fileSize: integer("file_size"),
+  documentFingerprint: text("document_fingerprint"),
+  sourceModifiedAt: text("source_modified_at"),
+  analysisStatus: text("analysis_status").notNull().default("queued"),
+  analysisSummary: text("analysis_summary"),
+  analysisDetails: text("analysis_details"),
+  extractedTextPreview: text("extracted_text_preview"),
+  matchedClientName: text("matched_client_name"),
+  matchedClientConfidence: integer("matched_client_confidence"),
+  matchedBy: text("matched_by"),
+  suggestedFolder: text("suggested_folder"),
+  routedFolder: text("routed_folder"),
+  analysisContext: text("analysis_context"),
+  analysisProvider: text("analysis_provider"),
+  analysisError: text("analysis_error"),
+  lastAnalyzedAt: text("last_analyzed_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const inboxLearningRulesTable = sqliteTable("inbox_learning_rules", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  signalType: text("signal_type").notNull(),
+  signalValue: text("signal_value").notNull(),
+  clientId: integer("client_id").notNull(),
+  targetFolder: text("target_folder"),
+  hitCount: integer("hit_count").notNull().default(1),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull()
 });

@@ -25,6 +25,15 @@ import {
   deleteMizanCode,
   listMizanCodes
 } from "./services/mizan/mizan-service";
+import {
+  getInboxMonitor,
+  deleteInboxDocument,
+  listInboxDocuments,
+  openInboxDocument,
+  openInboxFolder,
+  routeInboxDocument,
+  reanalyzeInboxDocument
+} from "./services/inbox/inbox-service";
 import { getStoredLicenseState } from "./services/licensing/license-store";
 import { completeOnboarding } from "./services/onboarding/workspace-service";
 import {
@@ -55,6 +64,14 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("clients:pickImportFile", async () => pickClientImportFile());
   ipcMain.handle("clients:previewImport", async (_, filePath: string) => previewClientImport(filePath));
   ipcMain.handle("clients:commitImport", async (_, input) => commitClientImport(input));
+
+  ipcMain.handle("inbox:list", async () => listInboxDocuments());
+  ipcMain.handle("inbox:getMonitor", async () => getInboxMonitor());
+  ipcMain.handle("inbox:openFolder", async () => openInboxFolder());
+  ipcMain.handle("inbox:openDocument", async (_, documentId: number) => openInboxDocument(documentId));
+  ipcMain.handle("inbox:reanalyze", async (_, documentId: number) => reanalyzeInboxDocument(documentId));
+  ipcMain.handle("inbox:delete", async (_, documentId: number) => deleteInboxDocument(documentId));
+  ipcMain.handle("inbox:route", async (_, input) => routeInboxDocument(input));
 
   ipcMain.handle("mizan:list", async () => listMizanCodes());
   ipcMain.handle("mizan:create", async (_, input) => createMizanCode(input));

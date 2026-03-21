@@ -9,6 +9,7 @@ import { StatePanel } from "./components/ui/state-panel";
 import { useAppStore } from "./features/app/app-store";
 import { ClientsPage } from "./features/clients/clients-page";
 import { DashboardPage } from "./features/dashboard/dashboard-page";
+import { InboxPage } from "./features/inbox/inbox-page";
 import { MizanPage } from "./features/mizan/mizan-page";
 import { OnboardingPage } from "./features/onboarding/onboarding-page";
 import { PlaceholderPage } from "./features/shared/placeholder-page";
@@ -164,7 +165,7 @@ function App() {
             }
           />
           <Route path="/mizan-kodlari" element={<MizanPage />} />
-          <Route path="/gelen-kutusu" element={<PlaceholderPage title="Gelen Kutusu" />} />
+          <Route path="/gelen-kutusu" element={<InboxPage bootstrap={bootstrap} />} />
           <Route path="/hatirlatmalar" element={<PlaceholderPage title="Hatırlatmalar" />} />
           <Route path="/ayarlar" element={<PlaceholderPage title="Ayarlar" />} />
         </Routes>

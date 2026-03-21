@@ -1,24 +1,27 @@
 # Kisayol
 
-Bu klasör, Domizan'ı hızlı test etmek için çift tıkla çalıştırılabilecek başlatma ve sıfırlama dosyalarını içerir.
+Bu klasor, Domizan'i hizli test etmek icin cift tikla calistirilabilecek yardimci dosyalari icerir.
 
-- `domizan-test-baslat.bat`: Windows için geliştirme modunu başlatır.
-- `domizan-test-baslat.command`: macOS için geliştirme modunu başlatır.
-- `domizan-sifirla.bat`: Windows tarafında masaüstü verilerini, Electron kullanıcı verilerini ve ortak makine güvenlik kayıtlarını siler.
-- `domizan-sifirla.command`: macOS tarafında masaüstü verilerini, Electron kullanıcı verilerini ve `/Users/Shared/Domizan` altındaki ortak güvenlik kayıtlarını siler.
-- `domizan-durum.bat`: Windows tarafında mevcut erişim durumunu gösterir.
-- `domizan-durum.command`: macOS tarafında mevcut erişim durumunu gösterir.
-- `domizan-lisansi-kaldir.bat`: Windows tarafında yalnızca yerel lisans kaydını temizler.
-- `domizan-lisansi-kaldir.command`: macOS tarafında yalnızca yerel lisans kaydını temizler.
-- `domizan-denemeyi-bitir.bat`: Windows tarafında denemeyi anında bitmiş hale getirir.
-- `domizan-denemeyi-bitir.command`: macOS tarafında denemeyi anında bitmiş hale getirir.
-- `domizan-denemeyi-sifirla.bat`: Windows tarafında trial kaydını temizler.
-- `domizan-denemeyi-sifirla.command`: macOS tarafında trial kaydını temizler.
+- `domizan-test-baslat.bat`: Windows icin gelistirme modunu baslatir.
+- `domizan-test-baslat.command`: macOS icin gelistirme modunu baslatir.
+- `domizan-sifirla.bat`: Windows tarafinda masaustu verilerini, Electron kullanici verilerini ve ortak makine guvenlik kayitlarini siler.
+- `domizan-sifirla.command`: macOS tarafinda masaustu verilerini, Electron kullanici verilerini ve `/Users/Shared/Domizan` altindaki ortak guvenlik kayitlarini siler.
+- `domizan-durum.bat`: Windows tarafinda mevcut erisim durumunu gosterir.
+- `domizan-durum.command`: macOS tarafinda mevcut erisim durumunu gosterir.
+- `domizan-lisansi-kaldir.bat`: Windows tarafinda yalnizca yerel lisans kaydini temizler.
+- `domizan-lisansi-kaldir.command`: macOS tarafinda yalnizca yerel lisans kaydini temizler.
+- `domizan-denemeyi-bitir.bat`: Windows tarafinda denemeyi aninda bitmis hale getirir.
+- `domizan-denemeyi-bitir.command`: macOS tarafinda denemeyi aninda bitmis hale getirir.
+- `domizan-denemeyi-sifirla.bat`: Windows tarafinda trial kaydini temizler.
+- `domizan-denemeyi-sifirla.command`: macOS tarafinda trial kaydini temizler.
+- `domizan-gelen-kutusunu-sifirla.bat`: Windows tarafinda `GelenKutusu` klasorunu ve gelen kutusu belge kayitlarini temizler.
+- `domizan-gelen-kutusunu-sifirla.command`: macOS tarafinda `GelenKutusu` klasorunu ve gelen kutusu belge kayitlarini temizler.
 
 Notlar:
 
-- Başlatma scriptleri proje köküne çıkarak `npm run dev` çalıştırır.
-- `node_modules` yoksa önce `npm install` dener.
-- Sıfırlama scriptleri kaynak kodu silmez; yalnızca test verilerini temizler.
-- Lisans ve deneme yardımcı scriptleri mükellef verilerini silmez; yalnızca erişim durumunu değiştirir.
-- macOS tarafında ilk çalıştırmada gerekirse `chmod +x Kisayol/*.command` komutunu bir kez vermek gerekebilir.
+- Baslatma scriptleri proje kokune cikar ve `npm run dev` calistirir.
+- `node_modules` yoksa once `npm install` dener.
+- Sifirlama scriptleri kaynak kodu silmez; yalnizca test verilerini temizler.
+- Lisans ve deneme yardimci scriptleri mukellef verilerini silmez; yalnizca erisim durumunu degistirir.
+- Gelen kutusu sifirlama scriptleri musteri kayitlarina dokunmaz; yalnizca `team_inbox` kaynakli belge kayitlarini ve klasor iceriklerini temizler.
+- macOS tarafinda ilk calistirmada gerekirse `chmod +x Kisayol/*.command` komutunu bir kez vermek gerekebilir.

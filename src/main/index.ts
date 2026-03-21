@@ -5,6 +5,7 @@ import { bootstrapDatabase } from "./database/bootstrap";
 import { closeDatabase, initDatabase } from "./database/connection";
 import { registerIpcHandlers } from "./ipc";
 import { ensureDomizanDirectories } from "./services/domizan-directories";
+import { disposeInboxMonitor, initializeInboxMonitor } from "./services/inbox/inbox-service";
 import { initializeAutoUpdater, syncUpdateStateToWindow } from "./services/updates/update-service";
 import { createMainWindow } from "./window";
 
@@ -27,6 +28,7 @@ const bootstrap = async () => {
   await initDatabase();
   bootstrapDatabase();
   registerIpcHandlers();
+  initializeInboxMonitor();
   const mainWindow = createMainWindow();
   initializeAutoUpdater();
   syncUpdateStateToWindow(mainWindow);
@@ -46,6 +48,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", () => {
+  disposeInboxMonitor();
   closeDatabase();
 });
 

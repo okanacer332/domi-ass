@@ -10,11 +10,28 @@ export const DOMIZAN_FOLDER_NAMES = {
   declarationTracking: "Beyanname-Takip"
 } as const;
 
+export const DOMIZAN_CLIENT_SUBFOLDERS = [
+  "01-Gelen Belgeler",
+  "02-Beyanname",
+  "03-Faturalar",
+  "04-Banka",
+  "05-Personel",
+  "06-Resmi Evrak",
+  "99-Diger"
+] as const;
+
 export type LemonMode = "test" | "live";
 export type ClientStatus = "active" | "passive";
 export type ClientIdentityType = "vkn" | "tckn";
 export type TrialStatus = "not_started" | "active" | "expired" | "converted";
 export type AccessMode = "trial" | "licensed" | "blocked";
+export type DocumentStatus = "waiting" | "reviewed" | "routed" | "error";
+export type InboxAnalysisStatus =
+  | "queued"
+  | "analyzing"
+  | "ready"
+  | "needs_review"
+  | "failed";
 export type BindingStatus = "bound" | "mismatch" | "unavailable";
 export type AppUpdateStatus =
   | "idle"
@@ -228,6 +245,67 @@ export type FolderOpenResult = {
   error: string | null;
 };
 
+export type InboxDocumentRecord = {
+  id: number;
+  clientId: number | null;
+  source: string;
+  originalName: string;
+  storedPath: string;
+  status: DocumentStatus;
+  detectedType: string | null;
+  mimeType: string | null;
+  fileExtension: string | null;
+  fileSize: number | null;
+  sourceModifiedAt: string | null;
+  analysisStatus: InboxAnalysisStatus;
+  analysisSummary: string | null;
+  analysisDetails: string | null;
+  extractedTextPreview: string | null;
+  matchedClientName: string | null;
+  matchedClientConfidence: number | null;
+  matchedBy: string | null;
+  suggestedFolder: string | null;
+  routedFolder: string | null;
+  analysisProvider: string | null;
+  analysisError: string | null;
+  lastAnalyzedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type InboxRouteFolder = (typeof DOMIZAN_CLIENT_SUBFOLDERS)[number];
+
+export type InboxMonitorSnapshot = {
+  inboxPath: string;
+  isWatching: boolean;
+  lastScanAt: string | null;
+  lastAnalysisAt: string | null;
+  queuedCount: number;
+  analyzingCount: number;
+  readyCount: number;
+  needsReviewCount: number;
+  failedCount: number;
+};
+
+export type InboxReanalyzeResult = {
+  queued: boolean;
+};
+
+export type InboxDeleteResult = {
+  deleted: boolean;
+};
+
+export type InboxRouteInput = {
+  documentId: number;
+  clientId: number;
+  targetFolder: InboxRouteFolder;
+};
+
+export type InboxRouteResult = {
+  moved: boolean;
+  document: InboxDocumentRecord;
+};
+
 export type ClientImportFile = {
   filePath: string;
   fileName: string;
@@ -324,6 +402,13 @@ export type DomizanApi = {
   pickClientImportFile: () => Promise<ClientImportFile | null>;
   previewClientImport: (filePath: string) => Promise<ClientImportPreview>;
   commitClientImport: (input: ClientImportCommitInput) => Promise<ClientImportCommitResult>;
+  listInboxDocuments: () => Promise<InboxDocumentRecord[]>;
+  getInboxMonitor: () => Promise<InboxMonitorSnapshot>;
+  openInboxFolder: () => Promise<FolderOpenResult>;
+  openInboxDocument: (documentId: number) => Promise<FolderOpenResult>;
+  reanalyzeInboxDocument: (documentId: number) => Promise<InboxReanalyzeResult>;
+  deleteInboxDocument: (documentId: number) => Promise<InboxDeleteResult>;
+  routeInboxDocument: (input: InboxRouteInput) => Promise<InboxRouteResult>;
   listMizanCodes: () => Promise<MizanCustomCodeRecord[]>;
   createMizanCode: (input: MizanCodeCreateInput) => Promise<MizanCustomCodeRecord>;
   deleteMizanCode: (id: number) => Promise<MizanCodeDeleteResult>;

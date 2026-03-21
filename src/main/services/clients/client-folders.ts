@@ -3,18 +3,8 @@ import path from "node:path";
 import { shell } from "electron";
 
 import { getClientIdentityTypeLabel } from "../../../shared/client-identity";
-import type { ClientRecord } from "../../../shared/contracts";
+import { DOMIZAN_CLIENT_SUBFOLDERS, type ClientRecord, type InboxRouteFolder } from "../../../shared/contracts";
 import { ensureDomizanDirectories } from "../domizan-directories";
-
-const CLIENT_SUBFOLDERS = [
-  "01-Gelen Belgeler",
-  "02-Beyanname",
-  "03-Faturalar",
-  "04-Banka",
-  "05-Personel",
-  "06-Resmi Evrak",
-  "99-Diger"
-];
 
 const CLIENT_INFO_FILE_NAME = "Bilgi.txt";
 const PASSIVE_CLIENTS_FOLDER_NAME = "_Pasif";
@@ -101,11 +91,20 @@ export const ensureClientFolderStructure = (
 ) => {
   const clientFolderPath = ensureClientFolderLocation(folderName, status);
 
-  CLIENT_SUBFOLDERS.forEach((subfolder) => {
+  DOMIZAN_CLIENT_SUBFOLDERS.forEach((subfolder) => {
     fs.mkdirSync(path.join(clientFolderPath, subfolder), { recursive: true });
   });
 
   return clientFolderPath;
+};
+
+export const getClientSubfolderPath = (
+  folderName: string,
+  subfolder: InboxRouteFolder,
+  status: ClientRecord["status"] = "active"
+) => {
+  const clientFolderPath = ensureClientFolderStructure(folderName, status);
+  return path.join(clientFolderPath, subfolder);
 };
 
 const formatValue = (value: string | null | undefined) => {
