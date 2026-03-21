@@ -20,6 +20,11 @@ import {
   openHostedCheckout,
   validateStoredLicense
 } from "./services/licensing/lemon";
+import {
+  createMizanCode,
+  deleteMizanCode,
+  listMizanCodes
+} from "./services/mizan/mizan-service";
 import { getStoredLicenseState } from "./services/licensing/license-store";
 import { completeOnboarding } from "./services/onboarding/workspace-service";
 import {
@@ -50,4 +55,8 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("clients:pickImportFile", async () => pickClientImportFile());
   ipcMain.handle("clients:previewImport", async (_, filePath: string) => previewClientImport(filePath));
   ipcMain.handle("clients:commitImport", async (_, input) => commitClientImport(input));
+
+  ipcMain.handle("mizan:list", async () => listMizanCodes());
+  ipcMain.handle("mizan:create", async (_, input) => createMizanCode(input));
+  ipcMain.handle("mizan:delete", async (_, id: number) => deleteMizanCode(id));
 };

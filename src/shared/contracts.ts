@@ -282,6 +282,27 @@ export type ClientImportCommitResult = {
   warnings: string[];
 };
 
+export type MizanCustomCodeRecord = {
+  id: number;
+  code: string;
+  title: string;
+  baseCode: string;
+  parentCode: string;
+  level: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MizanCodeCreateInput = {
+  parentCode: string;
+  code: string;
+  title: string;
+};
+
+export type MizanCodeDeleteResult = {
+  deletedCount: number;
+};
+
 export type DomizanApi = {
   getBootstrap: () => Promise<BootstrapPayload>;
   completeOnboarding: (input: OnboardingSetupInput) => Promise<WorkspaceProfile>;
@@ -303,4 +324,7 @@ export type DomizanApi = {
   pickClientImportFile: () => Promise<ClientImportFile | null>;
   previewClientImport: (filePath: string) => Promise<ClientImportPreview>;
   commitClientImport: (input: ClientImportCommitInput) => Promise<ClientImportCommitResult>;
+  listMizanCodes: () => Promise<MizanCustomCodeRecord[]>;
+  createMizanCode: (input: MizanCodeCreateInput) => Promise<MizanCustomCodeRecord>;
+  deleteMizanCode: (id: number) => Promise<MizanCodeDeleteResult>;
 };

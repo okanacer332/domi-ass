@@ -50,6 +50,17 @@ export const remindersTable = sqliteTable("reminders", {
   updatedAt: text("updated_at").notNull()
 });
 
+export const mizanCustomCodesTable = sqliteTable("mizan_custom_codes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  code: text("code").notNull().unique(),
+  title: text("title").notNull(),
+  baseCode: text("base_code").notNull(),
+  parentCode: text("parent_code").notNull(),
+  level: integer("level").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const licenseStateTable = sqliteTable("license_state", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   provider: text("provider").notNull().default("lemonsqueezy"),

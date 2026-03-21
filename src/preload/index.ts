@@ -33,7 +33,10 @@ const api: DomizanApi = {
   prepareClientImportTemplate: () => ipcRenderer.invoke("clients:prepareImportTemplate"),
   pickClientImportFile: () => ipcRenderer.invoke("clients:pickImportFile"),
   previewClientImport: (filePath) => ipcRenderer.invoke("clients:previewImport", filePath),
-  commitClientImport: (input) => ipcRenderer.invoke("clients:commitImport", input)
+  commitClientImport: (input) => ipcRenderer.invoke("clients:commitImport", input),
+  listMizanCodes: () => ipcRenderer.invoke("mizan:list"),
+  createMizanCode: (input) => ipcRenderer.invoke("mizan:create", input),
+  deleteMizanCode: (id) => ipcRenderer.invoke("mizan:delete", id)
 };
 
 contextBridge.exposeInMainWorld("domizanApi", api);

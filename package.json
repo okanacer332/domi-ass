@@ -1,6 +1,6 @@
 {
   "name": "domizan",
-  "version": "0.1.5",
+  "version": "2.0.0",
   "description": "Mali musavir ofisleri icin yapay zeka destekli masaustu operasyon platformu.",
   "main": "out/main/index.js",
   "author": "Domizan",
@@ -59,6 +59,12 @@
       "output": "release",
       "buildResources": "assets"
     },
+    "extraResources": [
+      {
+        "from": "assets/domizan-icon-source.png",
+        "to": "assets/domizan-icon-source.png"
+      }
+    ],
     "files": [
       "out/**/*",
       "package.json"
@@ -72,6 +78,7 @@
       }
     ],
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -83,6 +90,7 @@
     },
     "mac": {
       "category": "public.app-category.business",
+      "icon": "assets/icon.icns",
       "target": [
         {
           "target": "dmg",

@@ -108,6 +108,17 @@ export const bootstrapDatabase = () => {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS mizan_custom_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      base_code TEXT NOT NULL,
+      parent_code TEXT NOT NULL,
+      level INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS license_state (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       provider TEXT NOT NULL DEFAULT 'lemonsqueezy',

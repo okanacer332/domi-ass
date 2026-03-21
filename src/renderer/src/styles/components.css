@@ -604,6 +604,10 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
+.search-box--mizan {
+  min-width: 0;
+}
+
 .search-box input {
   padding: 14px 0;
   border: 0;
@@ -704,6 +708,11 @@
 .table-action-button {
   padding: 9px 12px;
   border-radius: 14px;
+}
+
+.table-action-button--danger {
+  border-color: rgba(193, 69, 69, 0.18);
+  color: #a43737;
 }
 
 .readonly-notice h4 {
@@ -1143,6 +1152,93 @@
   margin-bottom: 16px;
 }
 
+.mizan-filter-select {
+  width: 180px;
+  min-width: 180px;
+  flex: 0 0 180px;
+}
+
+.mizan-row-kind {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.mizan-row-kind.standard {
+  background: rgba(34, 53, 122, 0.1);
+  color: var(--brand-800);
+}
+
+.mizan-row-kind.custom {
+  background: rgba(63, 108, 90, 0.14);
+  color: var(--success);
+}
+
+.mizan-code-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.mizan-toggle-button,
+.mizan-toggle-spacer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
+
+.mizan-toggle-button {
+  border: 0;
+  border-radius: 8px;
+  background: rgba(34, 53, 122, 0.08);
+  color: var(--brand-800);
+  cursor: pointer;
+}
+
+.mizan-toggle-button:hover {
+  background: rgba(34, 53, 122, 0.14);
+}
+
+.mizan-row--custom td {
+  background: rgba(248, 251, 255, 0.7);
+}
+
+.mizan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mizan-create-summary {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(246, 248, 255, 0.82);
+}
+
+.mizan-create-summary span {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.mizan-create-summary strong {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+
+.mizan-create-summary p {
+  color: var(--muted);
+}
+
 .mascot-dock {
   position: fixed;
   right: 28px;
@@ -1487,12 +1583,19 @@
     flex-direction: column;
   }
 
+  .mizan-filter-select {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .topbar h2 {
     font-size: 1.88rem;
   }
 
   .stats-grid,
   .clients-stats-grid,
+  .mizan-stats-grid,
   .field-grid,
   .mapping-grid,
   .import-meta-grid,
