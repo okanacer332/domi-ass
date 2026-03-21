@@ -913,6 +913,37 @@
   align-items: flex-start;
 }
 
+.mizan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.mizan-header h3 {
+  margin-top: 8px;
+  font-size: 2rem;
+}
+
+.mizan-header__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.mizan-header__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+
 .mizan-class-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1355,6 +1386,7 @@
   .access-lock-banner,
   .readonly-notice,
   .clients-filter-bar,
+  .mizan-header,
   .import-intro-card,
   .import-preview-head,
   .onboarding-brand,
