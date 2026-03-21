@@ -1,5 +1,6 @@
 import {
   BellRing,
+  BookMarked,
   Inbox,
   LayoutDashboard,
   Settings,
@@ -16,6 +17,7 @@ export type AppNavItem = {
 export const appNavigation: AppNavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/mukellefler", label: "Mükellefler", icon: Users },
+  { to: "/mizan-kodlari", label: "Mizan Kodları", icon: BookMarked },
   { to: "/gelen-kutusu", label: "Gelen Kutusu", icon: Inbox },
   { to: "/hatirlatmalar", label: "Hatırlatmalar", icon: BellRing },
   { to: "/ayarlar", label: "Ayarlar", icon: Settings }

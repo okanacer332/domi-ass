@@ -913,6 +913,115 @@
   align-items: flex-start;
 }
 
+.mizan-class-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mizan-class-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(246, 248, 255, 0.84);
+}
+
+.mizan-class-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mizan-class-card__code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(34, 53, 122, 0.1);
+  color: var(--brand-800);
+  font-weight: 700;
+}
+
+.mizan-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mizan-chip {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(34, 53, 122, 0.1);
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.mizan-subcode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mizan-subcode-item {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(246, 248, 255, 0.82);
+}
+
+.mizan-subcode-item__codes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mizan-subcode-item__base {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.mizan-route-table-shell {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+.mizan-route-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mizan-route-table th,
+.mizan-route-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.mizan-route-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(246, 248, 255, 0.98);
+  color: var(--muted);
+  font-weight: 600;
+  z-index: 1;
+}
+
+.mizan-route-table tbody tr:hover {
+  background: rgba(242, 246, 255, 0.74);
+}
+
 .mascot-dock {
   position: fixed;
   right: 28px;
@@ -1263,6 +1372,7 @@
   .field-grid,
   .mapping-grid,
   .import-meta-grid,
+  .mizan-class-grid,
   .onboarding-license-meta,
   .template-guidance-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1276,8 +1386,13 @@
   .field-grid,
   .mapping-grid,
   .import-meta-grid,
+  .mizan-class-grid,
   .onboarding-license-meta,
   .template-guidance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mizan-subcode-item {
     grid-template-columns: 1fr;
   }
 
