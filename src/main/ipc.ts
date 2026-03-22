@@ -2,6 +2,12 @@ import { ipcMain } from "electron";
 
 import { getBootstrapPayload } from "./services/bootstrap";
 import {
+  clearAgentMessages,
+  getAgentStatus,
+  listAgentMessages,
+  sendAgentPrompt
+} from "./services/agent/agent-core";
+import {
   commitClientImport,
   pickClientImportFile,
   previewClientImport
@@ -63,6 +69,10 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("app:getBootstrap", async () => getBootstrapPayload());
   ipcMain.handle("app:getSettings", async () => getSettingsSnapshot());
   ipcMain.handle("app:setThemePreference", async (_, theme) => setThemePreference(theme));
+  ipcMain.handle("app:getAgentStatus", async () => getAgentStatus());
+  ipcMain.handle("app:listAgentMessages", async (_, channel) => listAgentMessages(channel));
+  ipcMain.handle("app:sendAgentMessage", async (_, input) => sendAgentPrompt(input));
+  ipcMain.handle("app:clearAgentMessages", async (_, channel) => clearAgentMessages(channel));
   ipcMain.handle("app:openPath", async (_, targetPath: string) => openPathFromSettings(targetPath));
   ipcMain.handle("app:getDashboardPlanner", async (_, referenceDate?: string) =>
     getDashboardPlanner(referenceDate)

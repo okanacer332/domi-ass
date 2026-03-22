@@ -46,6 +46,51 @@ export type AppUpdateStatus =
   | "error"
   | "unsupported";
 export type ThemePreference = "system" | "light" | "dark";
+export type AgentChannel = "desktop" | "telegram";
+export type AgentMessageRole = "user" | "assistant" | "system";
+export type AgentSyncStatus = "idle" | "syncing" | "ready" | "error";
+
+export type AgentMessageRecord = {
+  id: number;
+  channel: AgentChannel;
+  role: AgentMessageRole;
+  content: string;
+  meta: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AgentStatusSnapshot = {
+  organizationId: string | null;
+  organizationName: string | null;
+  syncStatus: AgentSyncStatus;
+  lastSyncAt: string | null;
+  lastSyncError: string | null;
+  telegram: {
+    enabled: boolean;
+    running: boolean;
+    botUsername: string | null;
+    ownerChatId: string | null;
+    ownerDisplayName: string | null;
+    lastMessageAt: string | null;
+    lastError: string | null;
+  };
+  gemini: {
+    configured: boolean;
+    source: "organization" | "fallback" | "local" | "none";
+    model: string | null;
+  };
+};
+
+export type AgentChatRequest = {
+  message: string;
+  channel?: AgentChannel;
+};
+
+export type AgentChatResponse = {
+  message: AgentMessageRecord;
+  status: AgentStatusSnapshot;
+};
 
 export type ClientImportField =
   | "name"
@@ -555,6 +600,10 @@ export type DomizanApi = {
   getBootstrap: () => Promise<BootstrapPayload>;
   getSettingsSnapshot: () => Promise<SettingsSnapshot>;
   setThemePreference: (theme: ThemePreference) => Promise<SettingsSnapshot>;
+  getAgentStatus: () => Promise<AgentStatusSnapshot>;
+  listAgentMessages: (channel?: AgentChannel) => Promise<AgentMessageRecord[]>;
+  sendAgentMessage: (input: AgentChatRequest) => Promise<AgentChatResponse>;
+  clearAgentMessages: (channel?: AgentChannel) => Promise<{ cleared: boolean }>;
   openPath: (targetPath: string) => Promise<FolderOpenResult>;
   getDashboardPlanner: (referenceDate?: string) => Promise<DashboardPlannerPayload>;
   completeOnboarding: (input: OnboardingSetupInput) => Promise<WorkspaceProfile>;

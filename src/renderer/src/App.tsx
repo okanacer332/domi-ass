@@ -6,6 +6,7 @@ import { AppSidebar } from "./components/layout/app-sidebar";
 import { AppTopbar } from "./components/layout/app-topbar";
 import { MascotDock } from "./components/ui/mascot-dock";
 import { StatePanel } from "./components/ui/state-panel";
+import { AgentPanel } from "./features/agent/agent-panel";
 import { useAppStore } from "./features/app/app-store";
 import { ClientDetailPage } from "./features/clients/client-detail-page";
 import { ClientsPage } from "./features/clients/clients-page";
@@ -31,6 +32,7 @@ function App() {
   const openCheckout = useAppStore((state) => state.openCheckout);
   const [showAccessCenter, setShowAccessCenter] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isAgentOpen, setIsAgentOpen] = useState(false);
 
   useEffect(() => {
     void loadBootstrap();
@@ -80,7 +82,7 @@ function App() {
             description="Yerel klasorler, veritabani ve guvenli kurulum denetimleri calistiriliyor."
           />
         </main>
-        <MascotDock />
+        <MascotDock isActive={isAgentOpen} onClick={() => setIsAgentOpen((current) => !current)} />
       </div>
     );
   }
@@ -95,7 +97,7 @@ function App() {
             description={error ?? "Beklenmeyen hata"}
           />
         </main>
-        <MascotDock />
+        <MascotDock isActive={isAgentOpen} onClick={() => setIsAgentOpen((current) => !current)} />
       </div>
     );
   }
@@ -117,7 +119,7 @@ function App() {
         <main className="content content--single">
           <OnboardingPage bootstrap={bootstrap} />
         </main>
-        <MascotDock />
+        <MascotDock isActive={isAgentOpen} onClick={() => setIsAgentOpen((current) => !current)} />
       </div>
     );
   }
@@ -205,7 +207,8 @@ function App() {
         </div>
       </main>
 
-      <MascotDock />
+      <MascotDock isActive={isAgentOpen} onClick={() => setIsAgentOpen((current) => !current)} />
+      <AgentPanel isOpen={isAgentOpen} onClose={() => setIsAgentOpen(false)} />
 
       {showAccessCenter && (
         <div className="access-center-overlay" role="presentation">

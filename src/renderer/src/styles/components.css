@@ -2628,7 +2628,7 @@
   right: 28px;
   bottom: 24px;
   z-index: 20;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .mascot-dock__glow {
@@ -2652,12 +2652,150 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(235, 241, 255, 0.92));
   box-shadow: var(--shadow-strong);
   backdrop-filter: blur(12px);
+  cursor: pointer;
 }
 
 .mascot-dock__image {
   width: 40px;
   height: 40px;
   object-fit: contain;
+}
+
+.mascot-dock.is-active .mascot-dock__bubble {
+  border-color: rgba(54, 81, 173, 0.28);
+  background: linear-gradient(180deg, rgba(236, 241, 255, 0.98), rgba(222, 232, 255, 0.94));
+}
+
+.agent-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px 22px 110px;
+  pointer-events: none;
+}
+
+.agent-panel {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(460px, 100%);
+  height: min(720px, calc(100vh - 146px));
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(187, 202, 255, 0.34), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 246, 255, 0.95));
+  box-shadow: var(--shadow-strong);
+  backdrop-filter: blur(16px);
+}
+
+.agent-panel__header,
+.agent-panel__status-row,
+.agent-panel__actions,
+.agent-message__meta,
+.agent-panel__composer {
+  display: flex;
+}
+
+.agent-panel__header,
+.agent-panel__status-row,
+.agent-panel__composer {
+  align-items: center;
+}
+
+.agent-panel__header,
+.agent-message__meta {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agent-panel__header {
+  align-items: flex-start;
+}
+
+.agent-panel__actions,
+.agent-panel__status-row {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.agent-panel__header h3 {
+  margin-top: 6px;
+  font-size: 1.4rem;
+}
+
+.agent-panel__header p:last-child {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.agent-panel__messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.agent-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1;
+  padding: 22px;
+  border: 1px dashed rgba(34, 53, 122, 0.18);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.68);
+  text-align: center;
+  color: var(--muted);
+}
+
+.agent-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.agent-message--assistant {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.agent-message--user {
+  margin-left: 36px;
+  background: rgba(231, 237, 255, 0.9);
+}
+
+.agent-message__meta span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.agent-message__content {
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+
+.agent-panel__composer {
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.agent-panel__textarea {
+  min-height: 88px;
+  resize: none;
 }
 
 .access-center-overlay {
@@ -3160,6 +3298,15 @@
   .mascot-dock {
     right: 16px;
     bottom: 16px;
+  }
+
+  .agent-panel-overlay {
+    padding: 12px 12px 92px;
+  }
+
+  .agent-panel {
+    width: 100%;
+    height: min(640px, calc(100vh - 108px));
   }
 
   .mascot-dock__bubble {

@@ -161,6 +161,16 @@ export const bootstrapDatabase = () => {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS agent_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      channel TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      meta TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS inbox_learning_rules (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       signal_type TEXT NOT NULL,

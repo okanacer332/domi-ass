@@ -114,6 +114,16 @@ export const mizanCustomCodesTable = sqliteTable("mizan_custom_codes", {
   updatedAt: text("updated_at").notNull()
 });
 
+export const agentMessagesTable = sqliteTable("agent_messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  channel: text("channel").notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  meta: text("meta"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const licenseStateTable = sqliteTable("license_state", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   provider: text("provider").notNull().default("lemonsqueezy"),

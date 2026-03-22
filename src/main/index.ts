@@ -4,6 +4,7 @@ import { app, BrowserWindow, nativeImage } from "electron";
 import { bootstrapDatabase } from "./database/bootstrap";
 import { closeDatabase, initDatabase } from "./database/connection";
 import { registerIpcHandlers } from "./ipc";
+import { disposeAgentRuntime, initializeAgentRuntime } from "./services/agent/agent-runtime";
 import { ensureDomizanDirectories } from "./services/domizan-directories";
 import { disposeInboxMonitor, initializeInboxMonitor } from "./services/inbox/inbox-service";
 import { initializeAutoUpdater, syncUpdateStateToWindow } from "./services/updates/update-service";
@@ -29,6 +30,7 @@ const bootstrap = async () => {
   bootstrapDatabase();
   registerIpcHandlers();
   initializeInboxMonitor();
+  initializeAgentRuntime();
   const mainWindow = createMainWindow();
   initializeAutoUpdater();
   syncUpdateStateToWindow(mainWindow);
@@ -48,6 +50,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", () => {
+  disposeAgentRuntime();
   disposeInboxMonitor();
   closeDatabase();
 });

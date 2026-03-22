@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Cpu,
   Download,
@@ -13,7 +13,11 @@ import {
   SunMedium
 } from "lucide-react";
 
-import type { BootstrapPayload, ThemePreference } from "../../../../shared/contracts";
+import type {
+  AgentStatusSnapshot,
+  BootstrapPayload,
+  ThemePreference
+} from "../../../../shared/contracts";
 import { StatePanel } from "../../components/ui/state-panel";
 import { useAppStore } from "../app/app-store";
 
@@ -92,6 +96,7 @@ export function SettingsPage({ bootstrap }: SettingsPageProps) {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [busyArea, setBusyArea] = useState<"theme" | "license" | "paths" | "update" | null>(null);
+  const [agentStatus, setAgentStatus] = useState<AgentStatusSnapshot | null>(null);
 
   const integrationChips = useMemo(
     () => [
@@ -115,6 +120,34 @@ export function SettingsPage({ bootstrap }: SettingsPageProps) {
         { label: "Sablonlar", path: settings.directories.templates }
       ]
     : [];
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAgentStatus = async () => {
+      try {
+        const nextStatus = await window.domizanApi.getAgentStatus();
+
+        if (active) {
+          setAgentStatus(nextStatus);
+        }
+      } catch {
+        if (active) {
+          setAgentStatus(null);
+        }
+      }
+    };
+
+    void loadAgentStatus();
+    const timer = window.setInterval(() => {
+      void loadAgentStatus();
+    }, 10000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const handleThemeChange = async (theme: ThemePreference) => {
     setBusyArea("theme");
@@ -510,6 +543,49 @@ export function SettingsPage({ bootstrap }: SettingsPageProps) {
               </div>
             </div>
           </div>
+        </article>
+
+        <article className="settings-card">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">Agent</p>
+              <h4>Telegram ve ofis asistani</h4>
+            </div>
+            <Sparkles size={16} />
+          </div>
+
+          <div className="settings-kv-grid">
+            <div className="settings-kv-card">
+              <span>Organizasyon</span>
+              <strong>{agentStatus?.organizationName ?? "Heniz sync olmadi"}</strong>
+              <p>{agentStatus?.organizationId ?? "Sync sonrasi olusur"}</p>
+            </div>
+            <div className="settings-kv-card">
+              <span>Telegram</span>
+              <strong>
+                {agentStatus?.telegram.enabled
+                  ? agentStatus.telegram.running
+                    ? "Calisiyor"
+                    : "Beklemede"
+                  : "Token bekliyor"}
+              </strong>
+              <p>{agentStatus?.telegram.botUsername ?? "Bot kullanici adi yok"}</p>
+            </div>
+            <div className="settings-kv-card">
+              <span>Owner chat</span>
+              <strong>{agentStatus?.telegram.ownerDisplayName ?? "-"}</strong>
+              <p>{agentStatus?.telegram.ownerChatId ?? "Henuz sahip eslesmedi"}</p>
+            </div>
+            <div className="settings-kv-card">
+              <span>Gemini</span>
+              <strong>{agentStatus?.gemini.configured ? "Hazir" : "Kapali"}</strong>
+              <p>Kaynak: {agentStatus?.gemini.source ?? "none"}</p>
+            </div>
+          </div>
+
+          {agentStatus?.telegram.lastError && (
+            <div className="inline-error">{agentStatus.telegram.lastError}</div>
+          )}
         </article>
 
         <article className="settings-card settings-card--full">

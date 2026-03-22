@@ -1,12 +1,22 @@
 import { domizanMascotUrl } from "../../lib/assets";
 
-export function MascotDock() {
+type MascotDockProps = {
+  isActive?: boolean;
+  onClick?: () => void;
+};
+
+export function MascotDock({ isActive = false, onClick }: MascotDockProps) {
   return (
-    <div aria-hidden="true" className="mascot-dock">
+    <div className={`mascot-dock ${isActive ? "is-active" : ""}`}>
       <div className="mascot-dock__glow" />
-      <div className="mascot-dock__bubble">
+      <button
+        aria-label="Domizan agent sohbetini ac"
+        className="mascot-dock__bubble"
+        onClick={onClick}
+        type="button"
+      >
         <img alt="" className="mascot-dock__image" src={domizanMascotUrl} />
-      </div>
+      </button>
     </div>
   );
 }
