@@ -12,7 +12,6 @@ import type {
 } from "../../../shared/contracts";
 import { getDatabase, persistDatabase } from "../../database/connection";
 import { agentMessagesTable, documentsTable, remindersTable } from "../../database/schema";
-import { env } from "../../config/env";
 import { listClients } from "../clients/client-service";
 import { listInboxDocuments } from "../inbox/inbox-service";
 import { getAccessSnapshot } from "../licensing/access-service";
@@ -26,6 +25,7 @@ type AgentPromptKind =
   | "daily_brief"
   | "official_gazette"
   | "client_status"
+  | "client_count"
   | "inbox_summary"
   | "planner_summary"
   | "general";
@@ -48,11 +48,52 @@ type OfficeContext = {
   latestInbox: ReturnType<typeof summarizeInboxRows>;
 };
 
+const CLIENT_QUERY_STOP_WORDS = new Set([
+  "mukellef",
+  "mukellefin",
+  "mukellefler",
+  "mukelleflerin",
+  "sayisi",
+  "kac",
+  "ne",
+  "nedir",
+  "kim",
+  "hangi",
+  "var",
+  "durumu",
+  "durum",
+  "vkn",
+  "tckn",
+  "tc",
+  "kimlik",
+  "numarasi",
+  "vergi",
+  "no",
+  "nin",
+  "nın",
+  "nun",
+  "nün",
+  "si",
+  "sı",
+  "su",
+  "bu",
+  "bir",
+  "ile",
+  "icin"
+]);
+
 const normalizeText = (value: string) =>
   value
     .toLocaleLowerCase("tr-TR")
     .normalize("NFKD")
     .replace(/\p{Diacritic}/gu, "");
+
+const tokenizeText = (value: string) =>
+  normalizeText(value)
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
 
 const formatDateTime = (value: string | null) => {
   if (!value) {
@@ -131,7 +172,6 @@ const detectPromptKind = (message: string): AgentPromptKind => {
   const normalized = normalizeText(message);
 
   if (
-    normalized.includes("günlük brif") ||
     normalized.includes("gunluk brif") ||
     normalized.includes("/brief") ||
     normalized.includes("bugun ne var")
@@ -143,6 +183,14 @@ const detectPromptKind = (message: string): AgentPromptKind => {
     return "official_gazette";
   }
 
+  if (
+    normalized.includes("mukellef sayisi") ||
+    normalized.includes("kac mukellef") ||
+    normalized.includes("toplam mukellef")
+  ) {
+    return "client_count";
+  }
+
   if (normalized.includes("eksik belge") || normalized.includes("gelen kutusu")) {
     return "inbox_summary";
   }
@@ -151,7 +199,15 @@ const detectPromptKind = (message: string): AgentPromptKind => {
     return "planner_summary";
   }
 
-  if (normalized.includes("mukellef") || normalized.includes("müşteri") || normalized.includes("client")) {
+  if (
+    normalized.includes("mukellef") ||
+    normalized.includes("musteri") ||
+    normalized.includes("client") ||
+    normalized.includes("vkn") ||
+    normalized.includes("tckn") ||
+    normalized.includes("kimlik") ||
+    normalized.includes("vergi no")
+  ) {
     return "client_status";
   }
 
@@ -160,6 +216,7 @@ const detectPromptKind = (message: string): AgentPromptKind => {
 
 const findClientByPrompt = (message: string, clients: ClientRecord[]) => {
   const normalizedPrompt = normalizeText(message);
+  const promptTokens = tokenizeText(message);
   const exactIdentity = message.replace(/\D+/g, "");
 
   if (exactIdentity.length >= 10) {
@@ -169,22 +226,71 @@ const findClientByPrompt = (message: string, clients: ClientRecord[]) => {
     }
   }
 
-  return (
-    clients.find((client) => normalizedPrompt.includes(normalizeText(client.name))) ??
-    clients.find((client) =>
-      normalizeText(client.name)
-        .split(" ")
-        .filter(Boolean)
-        .some((part) => part.length > 2 && normalizedPrompt.includes(part))
-    ) ??
-    null
-  );
+  const fullNameMatch = clients.find((client) => normalizedPrompt.includes(normalizeText(client.name)));
+  if (fullNameMatch) {
+    return fullNameMatch;
+  }
+
+  const scoredMatches = clients
+    .map((client) => {
+      const clientTokens = tokenizeText(client.name).filter(
+        (token) => token.length > 2 && !CLIENT_QUERY_STOP_WORDS.has(token)
+      );
+      const matchedCount = clientTokens.filter((token) =>
+        promptTokens.some((promptToken) => promptToken === token || promptToken.startsWith(token))
+      ).length;
+
+      return {
+        client,
+        matchedCount,
+        clientTokenCount: clientTokens.length
+      };
+    })
+    .filter((entry) => entry.matchedCount > 0)
+    .sort((left, right) => right.matchedCount - left.matchedCount);
+
+  if (scoredMatches.length > 0) {
+    const [best, second] = scoredMatches;
+    if (
+      best.matchedCount >= 2 ||
+      (best.matchedCount === 1 &&
+        best.clientTokenCount === 1 &&
+        (!second || second.matchedCount < best.matchedCount))
+    ) {
+      return best.client;
+    }
+  }
+
+  return null;
 };
 
 const buildClientReply = async (message: string, clients: ClientRecord[]) => {
   const client = findClientByPrompt(message, clients);
   if (!client) {
     return null;
+  }
+
+  const normalizedPrompt = normalizeText(message);
+  const wantsIdentity =
+    normalizedPrompt.includes("vkn") ||
+    normalizedPrompt.includes("tckn") ||
+    normalizedPrompt.includes("kimlik") ||
+    normalizedPrompt.includes("vergi no") ||
+    normalizedPrompt.includes("kimlik no");
+
+  if (wantsIdentity) {
+    const identityTypeLabel =
+      client.identityType === "tckn"
+        ? "T.C. Kimlik No"
+        : client.identityType === "vkn"
+          ? "VKN"
+          : "Kimlik";
+
+    return [
+      `${client.name} icin kimlik bilgisi:`,
+      `- Tip: ${identityTypeLabel}`,
+      `- Numara: ${client.identityNumber ?? "Kayitli degil"}`
+    ].join("\n");
   }
 
   const db = getDatabase();
@@ -240,9 +346,7 @@ const buildPlannerReply = (context: OfficeContext) => {
   ];
 
   if (context.nextDeadline) {
-    lines.push(
-      `Siradaki kritik gun: ${context.nextDeadline.title} - ${formatDate(context.nextDeadline.date)}`
-    );
+    lines.push(`Siradaki kritik gun: ${context.nextDeadline.title} - ${formatDate(context.nextDeadline.date)}`);
   }
 
   if (context.upcomingEvents.length > 0) {
@@ -265,9 +369,7 @@ const buildDailyBrief = (context: OfficeContext) => {
   ];
 
   if (context.nextDeadline) {
-    lines.push(
-      `- Sıradaki kritik tarih: ${context.nextDeadline.title} (${formatDate(context.nextDeadline.date)})`
-    );
+    lines.push(`- Siradaki kritik tarih: ${context.nextDeadline.title} (${formatDate(context.nextDeadline.date)})`);
   }
 
   if (context.upcomingEvents.length > 0) {
@@ -280,9 +382,7 @@ const buildDailyBrief = (context: OfficeContext) => {
   if (context.latestInbox.length > 0) {
     lines.push("", "Son gelen kutusu sinyalleri:");
     context.latestInbox.slice(0, 3).forEach((item) => {
-      lines.push(
-        `- ${item.name}: ${item.matchedClientName ?? "Eslesme yok"} / ${item.suggestedFolder ?? "Klasor yok"}`
-      );
+      lines.push(`- ${item.name}: ${item.matchedClientName ?? "Eslesme yok"} / ${item.suggestedFolder ?? "Klasor yok"}`);
     });
   }
 
@@ -294,6 +394,13 @@ const buildOfficialGazetteReply = () =>
     "Resmi Gazete tarama omurgasi bu fazda agent akisina baglandi ancak masaustu icinde henuz canli gazete veri kaynagi beslenmiyor.",
     "Ilk resmi testte bu komut altyapiyi dogrulamak icin aktif kalacak.",
     "Sonraki adimda resmi kaynak taramasi ve SMMM etkisi ozetini ayni agente baglayacagiz."
+  ].join("\n");
+
+const buildClientCountReply = (context: OfficeContext) =>
+  [
+    `Toplam mukellef sayisi ${context.clientCount}.`,
+    `- Aktif: ${context.activeClientCount}`,
+    `- Pasif: ${context.passiveClientCount}`
   ].join("\n");
 
 const buildOfficeContext = async (): Promise<OfficeContext> => {
@@ -344,6 +451,8 @@ const buildBaseReply = async (promptKind: AgentPromptKind, message: string) => {
       return { reply: buildDailyBrief(context), context, promptKind };
     case "official_gazette":
       return { reply: buildOfficialGazetteReply(), context, promptKind };
+    case "client_count":
+      return { reply: buildClientCountReply(context), context, promptKind };
     case "inbox_summary":
       return { reply: buildInboxReply(context), context, promptKind };
     case "planner_summary":
@@ -360,7 +469,7 @@ const buildBaseReply = async (promptKind: AgentPromptKind, message: string) => {
         reply: [
           `${context.officeName ?? "Domizan"} ofisi icin hazirim.`,
           `Su an ${context.clientCount} mukellef, ${context.waitingInboxCount} bekleyen belge ve ${context.overdueReminderCount} geciken hatirlatici goruyorum.`,
-          "Günlük brif, resmi gazete, gelen kutusu, eksik belge veya bir mukellef adi ile sorabilirsin."
+          "Gunluk brif, resmi gazete, gelen kutusu, eksik belge veya bir mukellef adi ile sorabilirsin."
         ].join("\n"),
         context,
         promptKind
