@@ -30,7 +30,7 @@ Bu faz sonunda:
 
 ### Desktop
 
-- `DOMIZAN_API_BASE_URL=https://gateway.domizan.com/api`
+- `DOMIZAN_API_BASE_URL=https://domizan-api-66765735737.europe-west1.run.app`
 - ofis onboarding tamamlanmis olmali
 - uygulama acik olmali
 

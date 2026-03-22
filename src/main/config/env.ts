@@ -18,7 +18,7 @@ const parseOptionalNumber = (value: string | undefined): number | null => {
 
 const lemonMode: LemonMode = process.env.LEMON_MODE === "live" ? "live" : "test";
 
-const DEFAULT_DOMIZAN_API_BASE_URL = "https://gateway.domizan.com/api";
+const DEFAULT_DOMIZAN_API_BASE_URL = "https://domizan-api-66765735737.europe-west1.run.app";
 const DEFAULT_LEMON_STORE_ID = "321476";
 const DEFAULT_LEMON_PRODUCT_ID = "906701";
 const DEFAULT_LEMON_VARIANT_ID = "1426060";

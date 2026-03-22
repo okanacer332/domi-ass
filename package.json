@@ -1,6 +1,6 @@
 {
   "name": "domizan",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "Mali musavir ofisleri icin yapay zeka destekli masaustu operasyon platformu.",
   "main": "out/main/index.js",
   "author": "Domizan",
